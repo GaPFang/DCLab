@@ -6,14 +6,16 @@ reg                Clk;
 reg                Reset;
 integer            i, outfile, counter;
 integer            array [0:100];
-integer            output;
+wire               i_start;
+wire               [3:0] o_random_out;
 
 always #(`CYCLE_TIME/2) Clk = ~Clk;
 
-LFSR LFSR(
+LFSR lfsr(
     .i_clk(Clk),
     .i_rst_n(Reset),
-    .i_start(output)
+    .i_start(i_start),
+    .o_random_out(o_random_out)
 );
   
 initial begin
@@ -33,8 +35,8 @@ initial begin
         array[i] = i % 2;
     end
     
-    // Open output file
-    outfile = $fopen("output.txt") | 1;
+    // Open i_start file
+    outfile = $fopen("i_start.txt") | 1;
 
     Clk = 0;
     Reset = 0;
@@ -44,13 +46,16 @@ initial begin
     
 end
 
-assign output = array[counter];
+assign i_start = array[counter];
   
 always@(posedge Clk) begin
     if(counter == 100)    // stop after 30 cycles
         $finish;
     
     counter = counter + 1;
+
+    $fdisplay(outfile, "i_start = %b", i_start);
+    $fdisplay(outfile, "o_random_out = %b", o_random_out);
 end
 
   

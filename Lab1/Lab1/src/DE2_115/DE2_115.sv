@@ -136,35 +136,47 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
-logic keydown;
-logic [3:0] random_value;
+logic [3:0] random_number;
+logic [3:0] last_result;
+logic start;
 
 Debounce deb0(
 	.i_in(KEY[0]),
 	.i_rst_n(KEY[1]),
 	.i_clk(CLOCK_50),
-	.o_neg(keydown)
+	.o_neg(start)
 );
 
 Top top0(
 	.i_clk(CLOCK_50),
 	.i_rst_n(KEY[1]),
-	.i_start(keydown),
-	.o_random_out(random_value)
+	.i_start(start),
+	.o_random_out(random_number),
+	.o_last_result(last_result)
 );
 
 SevenHexDecoder seven_dec0(
-	.i_hex(random_value),
-	.o_seven_ten(HEX1),
-	.o_seven_one(HEX0)
+	.i_hex(random_number),
+	.i_show(1'b1),
+	.o_seven_ten(HEX7),
+	.o_seven_one(HEX6)
 );
 
+SevenHexDecoder seven_dec1(
+	.i_hex(last_result),
+	.i_show(~KEY[2]),
+	.o_seven_ten(HEX5),
+	.o_seven_one(HEX4)
+);
+
+assign HEX0 = '1;
+assign HEX1 = '1;
 assign HEX2 = '1;
 assign HEX3 = '1;
-assign HEX4 = '1;
-assign HEX5 = '1;
-assign HEX6 = '1;
-assign HEX7 = '1;
+// assign HEX4 = '1;
+// assign HEX5 = '1;
+// assign HEX6 = '1;
+// assign HEX7 = '1;
 
 `ifdef DUT_LAB1
 	initial begin
