@@ -5,12 +5,12 @@ module TestBench;
 reg                Clk;
 reg                Reset;
 integer            i, outfile, counter;
-integer            array [0:10];
-reg                output;
+integer            array [0:100];
+integer            output;
 
 always #(`CYCLE_TIME/2) Clk = ~Clk;
 
-Top Top(
+LFSR LFSR(
     .i_clk(Clk),
     .i_rst_n(Reset),
     .i_start(output)
@@ -29,7 +29,7 @@ initial begin
     
     // // Load instructions into instruction memory
     // $readmemb("instruction.txt", CPU.Instruction_Memory.memory);
-    for (i=0; i<10; i=i+1) begin
+    for (i=0; i<100; i=i+1) begin
         array[i] = i % 2;
     end
     
@@ -43,12 +43,12 @@ initial begin
     Reset = 1;
     
 end
+
+assign output = array[counter];
   
 always@(posedge Clk) begin
-    if(counter == 10)    // stop after 30 cycles
+    if(counter == 100)    // stop after 30 cycles
         $finish;
-        
-    output <= array[counter];
     
     counter = counter + 1;
 end
