@@ -6,12 +6,7 @@ module Top (
 	output [3:0] o_last_result
 );
 
-LFSR LFSR0(
-	.i_clk(i_clk),
-	.i_rst_n(i_rst_n),
-	.i_start(LFSR_start),
-	.o_random_out(o_random_out_LFSR)
-);
+
 
 // ===== States =====
 parameter S_IDLE = 1'b0;
@@ -32,6 +27,14 @@ logic [CNT_SIZE-1:0] cnt, cnt_nxt;
 logic [7:0] cnt_small, cnt_small_nxt;
 logic LFSR_start, LFSR_start_nxt;
 logic [3:0] last_result, last_result_nxt, last_result_show;
+
+// LFSR instantiation
+LFSR LFSR0(
+	.i_clk(i_clk),
+	.i_rst_n(i_rst_n),
+	.i_start(LFSR_start),
+	.o_random_out(o_random_out_LFSR)
+);
 
 //assign
 assign o_random_out = o_random_out_r;
