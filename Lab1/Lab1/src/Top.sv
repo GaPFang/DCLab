@@ -10,7 +10,7 @@ LFSR LFSR0(
 	.i_clk(i_clk),
 	.i_rst_n(i_rst_n),
 	.i_start(LFSR_start),
-	.o_random_out(o_random_out_LFSR),
+	.o_random_out(o_random_out_LFSR)
 );
 
 // ===== States =====
