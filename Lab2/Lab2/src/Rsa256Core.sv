@@ -187,36 +187,118 @@ module Rsa256Core (
 endmodule
 
 
-
+/*
 module ModuloProduct (
-    input logic clk,               // 時鐘
-    input logic rst_n,             // 重置訊號（低電位有效）
-    input logic start,             // 啟動信號
+    input  clk,               // 時鐘
+    input  rst_n,             // 重置訊號（低電位有效）
+    input  start,             // 啟動信號
     input [255:0] N,               // 輸入參數 N
     input [255:0] a,               // 輸入參數 a
     input [255:0] b,               // 輸入參數 b
-    input integer k,               // 迴圈次數 k
-    output logic [255:0] result,   // 結果輸出
-    output logic done              // 完成信號
+    input [10:0] k,               // 迴圈次數 k
+    output [255:0] result,   // 結果輸出
+    output done              // 完成信號
 );
-    logic [255:0] t, m;
-    integer i;
-    logic [1:0] state;             // 狀態變數
-    logic [255:0] temp_m, temp_t;  // 用於暫存每次迴圈中的 m 和 t 更新
+    logic [256:0] t, m;
+    logic [10:0] i;
+    logic [1:0] state, state_nxt;             // 狀態變數
+    //logic [256:0] temp_m, temp_t;  // 用於暫存每次迴圈中的 m 和 t 更新
 	logic start_flag = 0;
+	logic [256:0] comp;
 
-	always_comb begin
-		if (start) begin
-			start_flag = 1;
+	localparam S_IDLE = 2'b00;
+	localparam S_CALC = 2'b01;
+	localparam S_DONE = 2'b10;
+
+	always_ff @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			start_flag <= 0;
 		end
-		else if (state == 2) begin
-			start_flag = 0;
-		end
-		else begin
-			start_flag = start_flag + 0;
+		else begin 
+			if (start) begin
+				start_flag <= 1;
+			end
+			else if ((state == 2) || (state == 0)) begin
+				start_flag <= 0;
+			end
+			else begin
+				start_flag <= 1;
+			end
 		end
 	end
 
+	always_ff @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			state <= 0;
+		end
+		else begin 
+			state <= state_nxt;
+		end
+	end
+
+
+	always_comb begin
+		state_nxt = state;
+		if (state == S_CALC) begin
+			//所有計算
+			t = {1'b0,b};
+			m = 257'b0;
+			for (i = 0; i <= k; i = i + 1) begin
+				if(a[i]) begin
+					comp = m + t;
+					if (comp >= N) begin
+						m = m + t - N;
+					end
+					else begin
+						m = m + t;
+					end
+				end
+				else begin
+					m = m + 0;
+					comp = 0;
+				end
+
+				comp = t << 1;
+				if (comp >= N) begin
+					t = t + t - N
+				end
+				else begin
+					t = t << 1;
+				end
+			end
+			done = 0;
+			state_nxt = S_DONE;
+			result = m;
+		end
+		else if (state == S_DONE) begin
+			//可以輸出結果
+			done = 1;
+			m = m + 0;
+			t = 0;
+			comp = 0;
+			state_nxt = S_IDLE;
+			result = m[255:0];
+		end
+		else begin // state == S_IDLE
+			//全部設為0
+			done = 0;
+			m = 0;
+			t = 0;
+			comp = 0;
+			result = 0;
+			if (start_flag) begin
+				state_nxt = S_CALC;
+			end
+			else begin
+				state_nxt = S_IDLE;
+			end
+		end
+	end
+	
+endmodule
+*/
+
+/*
     always_ff @(posedge clk or negedge rst_n) begin
 
         if (!rst_n) begin
@@ -294,4 +376,22 @@ module ModuloProduct (
 			end
         end
     end
+	*/
+
+/*
+module ModuloProduct (
+    input logic clk,               // 時鐘
+    input logic rst_n,             // 重置訊號（低電位有效）
+    input logic start,             // 啟動信號
+    input [255:0] N,               // 輸入參數 N
+    input [255:0] a,               // 輸入參數 a
+    input [255:0] b,               // 輸入參數 b
+    input integer k,               // 迴圈次數 k
+    output logic [255:0] result,   // 結果輸出
+    output logic done              // 完成信號
+);
+    logic [255:0] t, m;
+    integer i = 0;
+
 endmodule
+*/
