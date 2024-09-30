@@ -3,11 +3,11 @@ module tb_ModuloProduct;
     logic clk;
     logic rst_n;
     logic start;
-    logic [255:0] N;
-    logic [255:0] a;
-    logic [255:0] b;
+    logic [256:0] N;
+    logic [256:0] a;
+    logic [256:0] b;
     logic [10:0] k;
-    logic [255:0] result;
+    logic [256:0] result;
     logic done;
     
     // 實例化被測模組
@@ -37,14 +37,16 @@ module tb_ModuloProduct;
         N = 0;
         k = 0;
         
+        $dumpfile("waveform.vcd");    // 指定波形檔案名稱
+        $dumpvars(0, tb_ModuloProduct); // 記錄所有信號變化
         // 重置訊號啟動
         #10 rst_n = 1; // 在10ns時取消重置
         
         // 測試1: 簡單範例 a * b mod N
         // 輸入資料
-        a = 256'h05;     // a = 5
-        b = 256'h07;     // b = 7
-        N = 256'h0D;     // N = 13
+        a = 257'h05;     // a = 5
+        b = 257'h07;     // b = 7
+        N = 257'h0D;     // N = 13
         k = 11'd0255;    // 假設進行255次迴圈
         
         // 啟動模組，start信號拉高1個clock cycle
