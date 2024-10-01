@@ -10,7 +10,7 @@ module ModuloProduct (
     output done              // 完成信號
 );
     logic [257:0] t, m;
-    logic [10:0] i;
+    integer i; //modified logic to integer
     logic [1:0] state, state_nxt;             // 狀態變數
     //logic [256:0] temp_m, temp_t;  // 用於暫存每次迴圈中的 m 和 t 更新
 	logic start_flag;
@@ -62,11 +62,11 @@ module ModuloProduct (
 			//所有計算
 			t = {1'b0,b};
 			m = 258'b0;
-			for (i = 0; i <= k; i = i + 1) begin
-				#5;
+			for (i = 0; (i < k) && (i <= 256); i = i + 1) begin //modified <= to <, add upper bound constraint
+				//#5;
 				if(a[i]) begin
 					comp = m + t;
-					if (comp >= N) begin
+					if (comp >= {1'b0,N}) begin
 						m = m + t - N;
 					end
 					else begin
@@ -79,7 +79,7 @@ module ModuloProduct (
 				end
 
 				comp = t << 1;
-				if (comp >= N) begin
+				if (comp >= {1'b0,N}) begin
 					t = t + t - N;
 				end
 				else begin
@@ -93,7 +93,7 @@ module ModuloProduct (
 		else if (state == S_DONE) begin
 			//可以輸出結果
 			done_r = 1'b1;
-			m = m + 0;
+			m = 258'b0;//m + 0; modified
 			t = 258'b0;
 			comp = 258'b0;
 			state_nxt = S_IDLE;
