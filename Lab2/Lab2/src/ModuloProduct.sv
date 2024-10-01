@@ -9,7 +9,9 @@ module ModuloProduct (
     output [256:0] result,   // 結果輸出
     output done              // 完成信號
 );
-    logic [257:0] t, m;
+    logic [257:0] t;
+	logic [257:0] m_r;
+	logic [257:0] m_w [0:257];
     integer i; //modified logic to integer
     logic [1:0] state, state_nxt;             // 狀態變數
     //logic [256:0] temp_m, temp_t;  // 用於暫存每次迴圈中的 m 和 t 更新
@@ -22,14 +24,14 @@ module ModuloProduct (
 	localparam S_CALC = 2'b01;
 	localparam S_DONE = 2'b10;
 
-    assign done = done_w;
-    assign result = result_w;
+    assign done = done_r;
+    assign result = result_r;
 
 	always_ff @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
 			start_flag <= 0;
-            done_w <= 0;
-            result_w <= 0;
+            done_r <= 0;
+            result_r <= 0;
 		end
 		else begin 
 			if (start) begin
@@ -41,8 +43,9 @@ module ModuloProduct (
 			else begin
 				start_flag <= 1;
 			end
-            done_w <= done_r;
-            result_w <= result_r;
+            done_r <= done_w;
+            result_r <= result_w;
+			m_r <= m_w[i];
 		end
 	end
 
@@ -58,26 +61,31 @@ module ModuloProduct (
 
 	always_comb begin
 		state_nxt = state;
+		for (i = 0; i <= 257; i = i + 1) begin
+			m_w[i] = 257'b0;
+		end
+
 		if (state == S_CALC) begin
 			//所有計算
 			t = {1'b0,b};
-			m = 258'b0;
-			for (i = 0; (i < k) && (i <= 256); i = i + 1) begin //modified <= to <, add upper bound constraint
+			m_w[0] = 258'b0;
+			for (i = 0; (i <= k) && (i <= 256); i = i + 1) begin //modified <= to <, add upper bound constraint
 				//#5;
 				if(a[i]) begin
-					comp = m + t;
+					comp = m_w[i] + t;
 					if (comp >= {1'b0,N}) begin
-						m = m + t - N;
+						m_w[i+1] = m_w[i] + t - N;
 					end
 					else begin
-						m = m + t;
+						m_w[i+1] = m_w[i] + t;
 					end
 				end
 				else begin
-					m = m + 0;
+					//m_w = m_r;
+					m_w[i+1] = m_w[i];
 					comp = 0;
 				end
-
+				$display("%h: %h \n", i+1, m_w[i+1]);
 				comp = t << 1;
 				if (comp >= {1'b0,N}) begin
 					t = t + t - N;
@@ -86,26 +94,28 @@ module ModuloProduct (
 					t = t << 1;
 				end
 			end
-			done_r = 1'b0;
+			done_w = 1'b0;
 			state_nxt = S_DONE;
-			result_r = m[256:0];
+			$display("%h: %h \n", i, m_w[i]);
+			result_w = m_w[i][256:0];
+			
 		end
 		else if (state == S_DONE) begin
 			//可以輸出結果
-			done_r = 1'b1;
-			m = 258'b0;//m + 0; modified
+			done_w = 1'b1;
+			result_w = m_r[256:0];
+			//m_w = m_r;//m + 0; modified
 			t = 258'b0;
 			comp = 258'b0;
 			state_nxt = S_IDLE;
-			result_r = m[256:0];
 		end
 		else begin // state == S_IDLE
 			//全部設為0
-			done_r = 1'b0;
-			m = 258'b0;
+			done_w = 1'b0;
+			//m_w = 258'b0;
 			t = 258'b0;
 			comp = 258'b0;
-			result_r = 257'b0;
+			result_w = 257'b0;
 			if (start_flag) begin
 				state_nxt = S_CALC;
 			end
