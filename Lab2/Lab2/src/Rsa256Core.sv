@@ -12,41 +12,44 @@ module Rsa256Core (
 	// operations for RSA256 decryption
 	// namely, the Montgomery algorithm
 
-	localparam S_IDLE = 2'd0;
-	localparam S_PREP = 2'd1;
-	localparam S_MONT = 2'd2;
-	localparam S_CALC = 2'd3;
+	localparam S_IDLE = 3'd0;
+	localparam S_PREP = 3'd1;
+	localparam S_MONT = 3'd2;
+	localparam S_CALC = 3'd3;
+	localparam S_DONE = 3'd4;
 
-	logic [1:0] state, state_nxt;
+	logic [2:0] state, state_nxt;
 	logic [8:0] cnt, cnt_nxt;
 	logic [255:0] o_a_pow_d_r, o_a_pow_d_o_finished_r;
 	logic [255:0] m_w, t_w;
 	logic [255:0] m_r, t_r;
 	logic [255:0] m_mont, t_mont, t_prep;	// output of m, t from mont and prep
-	logic [255:0] N, d, a;
+	logic [255:0] N, d, a;	// loaded data
 	logic [255:0] N_nxt, d_nxt, a_nxt;
-	logic Mont_finish, Mont_fin_m, Mont_fin_t;
-	logic Mont_ready, Prep_ready, Prep_finish;
-	logic i_d;
+	logic Mont_finish, Mont_fin_m, Mont_fin_t, Prep_finish; // finished signal from mont and prep
+	logic Mont_ready, Prep_ready;	// ready signal for mont and prep
+	logic [7:0] i_d_index; // 
+	logic start_flag;
+	
 	
 	Montgomery Montgomery_m(
 		.i_clk(i_clk),
 		.i_rst(i_rst),
 		.i_start(Mont_ready),
-		.o_motgomery(m_mont),
-		.N(N),
-		.a(m_r),
-		.b(t_r),
+		.o_montgomery(m_mont),
+		.i_N(N),
+		.i_a(m_r),
+		.i_b(t_r),
 		.o_finished(Mont_finish_m)
 	);
 	Montgomery Montgonery_t(
 		.i_clk(i_clk),
 		.i_rst(i_rst),
 		.i_start(Mont_ready),
-		.o_motgomery(t_mont),
-		.N(N),
-		.a(t_r),
-		.b(t_r),
+		.o_montgomery(t_mont),
+		.i_N(N),
+		.i_a(t_r),
+		.i_b(t_r),
 		.o_finished(Mont_finish_t)
 	);
 
@@ -54,19 +57,20 @@ module Rsa256Core (
 		.clk(i_clk),
 		.rst_n(i_rst),
 		.start(Prep_ready),
-		.N(N),
+		.N({1'b0, N}),
 		.a({1'b1, 256'b0}),
-		.b(a),
-		.k(256),
+		.b({1'b0, a}),
+		.k(11'd256),
 		.result(t_prep),
 		.done(Prep_finish)
 	);
 
 	assign Mont_finish = Mont_fin_t && Mont_fin_m;
-	assign Mont_ready = (state == S_CALC);
-	assign i_d = (cnt > 0)? cnt-1: 0;
-	assign o_a_pow_d = o_a_pow_d_r;
-	assign o_finished = o_finished_r;
+	assign Mont_ready = (state == S_CALC && start_flag);
+	assign Prep_ready = (state == S_PREP && start_flag);
+	assign i_d_index = (cnt > 0)? (256-cnt): 0;
+	assign o_a_pow_d = (state == S_DONE)? m_r: 0;
+	assign o_finished = (state == S_DONE);
 
 	// Counter
 	always_comb begin
@@ -80,20 +84,30 @@ module Rsa256Core (
 	// FSM
 	always_comb begin
 		state_nxt = state;
+		start_flag = 0;
 		case(state)
 			S_IDLE: begin
-				if(i_start)	state_nxt = S_PREP;
+				if(i_start)	begin
+					state_nxt = S_PREP;
+					start_flag = 1;
+				end
 			end
 			S_PREP: begin
-				if(Prep_ready) state_nxt = S_CALC;
+				if(Prep_finish) state_nxt = S_CALC;
 			end
 			S_MONT: begin
 				if(Mont_finish)	state_nxt = S_CALC;
 			end
 			S_CALC: begin
-				if(cnt != 257)
+				if(cnt != 257) begin
 					state_nxt = S_MONT;
-				else state_nxt = S_IDLE;
+					start_flag = 1;
+				end
+					
+				else state_nxt = S_DONE;
+			end
+			S_DONE: begin
+				state_nxt = S_IDLE;
 			end
 		endcase
 	end
@@ -120,83 +134,14 @@ module Rsa256Core (
 			t_w = t_prep;
 		end
 		else if(state == S_MONT && Mont_finish) begin
-
+			if(d[i_d_index] == 1'b1)
+				m_w = m_mont;
+			t_w = t_mont;
 		end
 	end
 
-	function [255:0] montgomery;
-		input [255:0] N, a, b;
-		logic   [257:0] m;
-		integer i;
-		begin
-			m = 0;
-			for (i = 0; i < 256; i = i + 1) begin
-				if (a[0] == 1) begin
-					m = m + b;
-				end
-				if (m[0] == 1) begin
-					m = m + N;
-				end
-				m = m >> 1;
-				a = a >> 1;
-			end
-			if (m >= N) begin
-				m = m - N;
-			end
-			montgomery = m;
-		end
-
-	endfunction
-
-	function [255:0] RSA256;
-		input [255:0] N, y, d;
-		logic [255:0] t, m;
-		integer i;
-		begin
-			for (i = 0; i < 256; i = i + 1) begin
-				if (d[i] == 1) begin
-					m = montgomery(N, m, t);
-				end
-				t = montgomery(N, t, t);
-			end
-			RSA256 = m;
-		end
-		
-	endfunction
-	
-/*
-	function [255:0] ModuloProduct;
-		input [255:0] N, a, b, k;
-		logic [255:0] t, m;
-		integer i;
-
-		t = b;
-		m = 0;
-
-		begin
-			for (i = 0; i <= k; i = i + 1) begin
-				if (a[i]) begin
-					if ((m + t) >= N) m = m + t - N;
-					else m = m + t;
-				end
-
-				if ((t << 2) >= N) begin
-					t = t << 2;
-					t = t - N;
-				end
-				else begin
-					t = t << 2;
-				end
-			end
-			ModuloProduct = m;
-		end
-		
-	endfunction
-	*/	
 	always_ff @(posedge i_clk or posedge i_rst) begin
 		if (i_rst) begin
-			o_a_pow_d <= 0;
-			o_finished <= 0;
 			cnt <= 0;
 			state <= S_IDLE;
 			m_r <= 0;
@@ -205,24 +150,13 @@ module Rsa256Core (
 			a <= 0;
 			d <= 0;
 		end else begin
-			o_finished <= 0;
-			if (state == S_IDLE && i_start) begin
-				o_a_pow_d_r <= RSA256(i_n, i_a, i_d);
-				o_finished_r <= 1;
-			end
 			cnt <= cnt_nxt;
 			state <= state_nxt;
 			N <= N_nxt;
 			a <= a_nxt;
-			b <= b_nxt;
-			if(Mont_finish) begin
-				m_r <= m_w;
-				t_r <= t_w;
-			end
-			if(Prep_finish) begin
-				m_r <= 1;
-				t_r <= 
-			end
+			d <= d_nxt;
+			m_r <= m_w;
+			t_r <= t_w;
 		end
 	end
 
