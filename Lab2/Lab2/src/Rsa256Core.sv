@@ -22,15 +22,18 @@ module Rsa256Core (
 	logic [255:0] o_a_pow_d_r, o_a_pow_d_o_finished_r;
 	logic [255:0] m_w, t_w;
 	logic [255:0] m_r, t_r;
+	logic [255:0] m_mont, t_mont, t_prep;	// output of m, t from mont and prep
 	logic [255:0] N, d, a;
+	logic [255:0] N_nxt, d_nxt, a_nxt;
 	logic Mont_finish, Mont_fin_m, Mont_fin_t;
 	logic Mont_ready, Prep_ready, Prep_finish;
+	logic i_d;
 	
 	Montgomery Montgomery_m(
 		.i_clk(i_clk),
 		.i_rst(i_rst),
 		.i_start(Mont_ready),
-		.o_motgomery(m_w),
+		.o_motgomery(m_mont),
 		.N(N),
 		.a(m_r),
 		.b(t_r),
@@ -39,8 +42,8 @@ module Rsa256Core (
 	Montgomery Montgonery_t(
 		.i_clk(i_clk),
 		.i_rst(i_rst),
-		.i_ready(Mont_ready),
-		.o_motgomery(t_w),
+		.i_start(Mont_ready),
+		.o_motgomery(t_mont),
 		.N(N),
 		.a(t_r),
 		.b(t_r),
@@ -48,12 +51,22 @@ module Rsa256Core (
 	);
 
 	ModuloProduct ModuloProduct0(
-		
+		.clk(i_clk),
+		.rst_n(i_rst),
+		.start(Prep_ready),
+		.N(N),
+		.a({1'b1, 256'b0}),
+		.b(a),
+		.k(256),
+		.result(t_prep),
 		.done(Prep_finish)
 	);
 
 	assign Mont_finish = Mont_fin_t && Mont_fin_m;
-	assign Mont_ready = (state == S_CALC)
+	assign Mont_ready = (state == S_CALC);
+	assign i_d = (cnt > 0)? cnt-1: 0;
+	assign o_a_pow_d = o_a_pow_d_r;
+	assign o_finished = o_finished_r;
 
 	// Counter
 	always_comb begin
@@ -72,7 +85,7 @@ module Rsa256Core (
 				if(i_start)	state_nxt = S_PREP;
 			end
 			S_PREP: begin
-				if(Prep_ready) state_nxt = S_CAL;
+				if(Prep_ready) state_nxt = S_CALC;
 			end
 			S_MONT: begin
 				if(Mont_finish)	state_nxt = S_CALC;
@@ -85,8 +98,31 @@ module Rsa256Core (
 		endcase
 	end
 
-	assign o_a_pow_d = o_a_pow_d_r;
-	assign o_finished = o_finished_r;
+
+	// load data
+	always_comb begin
+		N_nxt = N;
+		a_nxt = a;
+		d_nxt = d;
+		if(i_start && state == S_IDLE) begin
+			N_nxt = i_n;
+			a_nxt = i_a;
+			d_nxt = i_d;
+		end
+	end
+	
+	// update t, m
+	always_comb begin
+		m_w = m_r;
+		t_w = t_r;
+		if(state == S_PREP && Prep_finish) begin
+			m_w = 1;
+			t_w = t_prep;
+		end
+		else if(state == S_MONT && Mont_finish) begin
+
+		end
+	end
 
 	function [255:0] montgomery;
 		input [255:0] N, a, b;
@@ -165,6 +201,9 @@ module Rsa256Core (
 			state <= S_IDLE;
 			m_r <= 0;
 			t_r <= 0;
+			N <= 0;
+			a <= 0;
+			d <= 0;
 		end else begin
 			o_finished <= 0;
 			if (state == S_IDLE && i_start) begin
@@ -173,6 +212,9 @@ module Rsa256Core (
 			end
 			cnt <= cnt_nxt;
 			state <= state_nxt;
+			N <= N_nxt;
+			a <= a_nxt;
+			b <= b_nxt;
 			if(Mont_finish) begin
 				m_r <= m_w;
 				t_r <= t_w;
