@@ -1,4 +1,4 @@
-./tb_verilog/tb.sv
-./Rsa256core.sv
-./Montgomery.sv
-./ModuloProduct.sv
+./tb_verilog/tb_Rsa256Core.sv
+Rsa256Core.sv
+Montgomery.sv
+ModuloProduct_new.sv
