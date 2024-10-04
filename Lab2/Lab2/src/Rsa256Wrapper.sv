@@ -79,6 +79,8 @@ always_comb begin
     rsa_start_w = 0;
     avm_address_w = avm_address_r;
     state_w = state_r;
+    avm_read_w = avm_read_r;
+    avm_write_w = avm_write_r;
     case (state_r)
         S_IDLE: begin
             state_w = S_GET_KEY;

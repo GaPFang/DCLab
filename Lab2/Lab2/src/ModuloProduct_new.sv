@@ -6,7 +6,7 @@ module ModuloProduct (
     input [256:0] a,               // 輸入參數 a
     input [256:0] b,               // 輸入參數 b
     input [10:0] k,               // 迴圈次數 k
-    output [256:0] result,   // 結果輸出
+    output [255:0] result,   // 結果輸出
     output done              // 完成信號
 );
     logic [257:0] t;
@@ -21,7 +21,7 @@ module ModuloProduct (
     //logic [256:0] temp_m, temp_t;  // 用於暫存每次迴圈中的 m 和 t 更新
 	logic start_flag;
 	logic [257:0] comp;
-    logic [256:0] result_w, result_r;
+    logic [255:0] result_w, result_r;
     logic done_w, done_r;
 
 	localparam S_IDLE = 2'b00;
@@ -78,7 +78,7 @@ module ModuloProduct (
 		end
 		*/
 		if (cycle == 0) begin
-			result_w = 257'b0;
+			result_w = 256'b0;
 			t_w = 258'b0;
 			m_w = 258'b0;
 		end
@@ -140,15 +140,17 @@ module ModuloProduct (
 				end
 				m_w = temp_m[i];
 				t_w = temp_t[i];
-				result_w = m_w[256:0];
+				result_w = m_w[255:0];
+				/*
 				if (idx >= 256) begin
 					$display("%d (m_w): %h \n", idx, m_w);
 				end
+				*/
 			end
 			
 			if (cycle >= CYCLES) begin
 				state_nxt = S_DONE;
-				result_w = m_r[256:0];
+				result_w = m_r[255:0];
 				m_w = m_r;
 			end
 			done_w = 1'b0;
@@ -187,14 +189,16 @@ module ModuloProduct (
 		else if (state == S_DONE) begin
 			//可以輸出結果
 			done_w = 1'b1;
-			result_w = m_r[256:0];
+			result_w = m_r[255:0];
 			//m_w = m_r;//m + 0; modified
 			t_w = 258'b0;
 			comp = 258'b0;
 			state_nxt = S_IDLE;
+			/*
 			$display("a: %d \n", a);
 			$display("b: %d \n", b);
 			$display("N: %d \n", N);
+			*/
 		end
 		else begin // state == S_IDLE
 			//全部設為0
@@ -202,7 +206,7 @@ module ModuloProduct (
 			//m_w = 258'b0;
 			t_w = 258'b0;
 			comp = 258'b0;
-			result_w = 257'b0;
+			result_w = 256'b0;
 			if (start_flag) begin
 				state_nxt = S_CALC;
 			end
