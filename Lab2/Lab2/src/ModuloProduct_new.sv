@@ -69,7 +69,9 @@ module ModuloProduct (
 	end
 
 
-	always_comb begin
+	always @(*) begin
+		idx = 0;
+		comp = 0;
 		state_nxt = state;
 		cycle_nxt = 0;
 		/*
