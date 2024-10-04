@@ -109,6 +109,7 @@ module ModuloProduct (
 				for (i = 0; i <= 3; i = i + 1) begin
 					idx = cycle*ITERATIONS_PER_CYCLE + i;
 					if ((idx <= 256) && (idx <= k)) begin
+						$display("%d: %d \n", idx, a[idx]);
 						if(a[idx]) begin
 							comp = temp_m[i] + temp_t[i];
 							if (comp >= {1'b0,N}) begin
@@ -129,12 +130,19 @@ module ModuloProduct (
 						else begin
 							temp_t[i+1] = temp_t[i] << 1;
 						end
-						m_w = temp_m[i];
-						t_w = temp_t[i];
-						result_w = m_w[256:0];
+						
+					end
+					else begin
+						temp_m[i+1] = temp_m[i];
+						temp_t[i+1] = temp_t[i];
 					end
 				end
-
+				m_w = temp_m[i];
+				t_w = temp_t[i];
+				result_w = m_w[256:0];
+				if (idx >= 256) begin
+					$display("%d (m_w): %h \n", idx, m_w);
+				end
 			end
 			
 			if (cycle >= CYCLES) begin
