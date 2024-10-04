@@ -68,7 +68,8 @@ module Rsa256Core (
 	assign Mont_finish = Mont_finish_t && Mont_finish_m;
 	assign Mont_ready = (state == S_MONT && start_flag);
 	assign Prep_ready = (state == S_PREP && start_flag);
-	assign i_d_index = (cnt > 0)? (256-cnt): 0;
+	// assign i_d_index = (cnt > 0)? (256-cnt): 0;
+	assign i_d_index = cnt>0? cnt-1: 0;
 	assign o_a_pow_d = (state == S_DONE)? m_r: 0;
 	assign o_finished = (state == S_DONE);
 
@@ -76,7 +77,7 @@ module Rsa256Core (
 	always_comb begin
 		cnt_nxt = cnt;
 		if(state == S_CALC) begin
-			if(cnt != 257)	cnt_nxt = cnt + 1;
+			if(cnt != 256)	cnt_nxt = cnt + 1;
 			else	cnt_nxt = 0;
 		end
 	end
@@ -99,7 +100,7 @@ module Rsa256Core (
 				if(Mont_finish)	state_nxt = S_CALC;
 			end
 			S_CALC: begin
-				if(cnt != 257) begin
+				if(cnt != 256) begin
 					state_nxt = S_MONT;
 					start_flag_nxt = 1;
 				end

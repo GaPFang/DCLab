@@ -110,6 +110,7 @@ module ModuloProduct (
 					idx = cycle*ITERATIONS_PER_CYCLE + i;
 					if ((idx <= 256) && (idx <= k)) begin
 						//$display("%d: %d \n", idx, a[idx]);
+						// $display("%d: %d \n", idx, a[idx]);
 						if(a[idx]) begin
 							comp = temp_m[i] + temp_t[i];
 							if (comp >= {1'b0,N}) begin

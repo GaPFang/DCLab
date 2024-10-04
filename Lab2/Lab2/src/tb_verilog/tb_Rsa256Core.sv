@@ -23,10 +23,10 @@ module tb;
 	);
 
 	initial begin
-		// $fsdbDumpfile("lab2.fsdb");
-		// $fsdbDumpvars;
-		$dumpfile("lab2.vcd");
-		$dumpvars(0, tb);
+		$fsdbDumpfile("lab2.fsdb");
+		$fsdbDumpvars;
+		// $dumpfile("lab2.vcd");
+		// $dumpvars(0, tb);
 		fp_e = $fopen("./pc_python/golden/enc1.bin", "rb");
 		fp_d = $fopen("./pc_python/golden/dec1.txt", "rb");
 		rst = 0;
