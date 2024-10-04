@@ -60,7 +60,7 @@ module Rsa256Core (
 		.N({1'b0, N}),
 		.a({1'b1, 256'b0}),
 		.b({1'b0, a}),
-		.k(11'd255),
+		.k(11'd256),
 		.result(t_prep),
 		.done(Prep_finish)
 	);

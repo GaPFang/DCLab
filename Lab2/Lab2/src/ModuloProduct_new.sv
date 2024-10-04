@@ -109,7 +109,7 @@ module ModuloProduct (
 				for (i = 0; i <= 3; i = i + 1) begin
 					idx = cycle*ITERATIONS_PER_CYCLE + i;
 					if ((idx <= 256) && (idx <= k)) begin
-						$display("%d: %d \n", idx, a[idx]);
+						//$display("%d: %d \n", idx, a[idx]);
 						if(a[idx]) begin
 							comp = temp_m[i] + temp_t[i];
 							if (comp >= {1'b0,N}) begin
@@ -191,6 +191,9 @@ module ModuloProduct (
 			t_w = 258'b0;
 			comp = 258'b0;
 			state_nxt = S_IDLE;
+			$display("a: %d \n", a);
+			$display("b: %d \n", b);
+			$display("N: %d \n", N);
 		end
 		else begin // state == S_IDLE
 			//全部設為0
