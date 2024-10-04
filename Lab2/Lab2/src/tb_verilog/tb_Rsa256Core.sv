@@ -23,13 +23,15 @@ module tb;
 	);
 
 	initial begin
-		$fsdbDumpfile("lab2.fsdb");
-		$fsdbDumpvars;
-		fp_e = $fopen("../pc_python/golden/enc1.bin", "rb");
-		fp_d = $fopen("../pc_python/golden/dec1.txt", "rb");
-		rst = 1;
-		#(2*CLK)
+		// $fsdbDumpfile("lab2.fsdb");
+		// $fsdbDumpvars;
+		$dumpfile("lab2.vcd");
+		$dumpvars(0, tb);
+		fp_e = $fopen("./pc_python/golden/enc1.bin", "rb");
+		fp_d = $fopen("./pc_python/golden/dec1.txt", "rb");
 		rst = 0;
+		#(2*CLK)
+		rst = 1;
 		for (int i = 0; i < 5; i++) begin
 			for (int j = 0; j < 10; j++) begin
 				@(posedge clk);

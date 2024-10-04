@@ -26,10 +26,10 @@ module Rsa256Core (
 	logic [255:0] m_mont, t_mont, t_prep;	// output of m, t from mont and prep
 	logic [255:0] N, d, a;	// loaded data
 	logic [255:0] N_nxt, d_nxt, a_nxt;
-	logic Mont_finish, Mont_fin_m, Mont_fin_t, Prep_finish; // finished signal from mont and prep
+	logic Mont_finish, Mont_finish_m, Mont_finish_t, Prep_finish; // finished signal from mont and prep
 	logic Mont_ready, Prep_ready;	// ready signal for mont and prep
 	logic [7:0] i_d_index; // 
-	logic start_flag;
+	logic start_flag, start_flag_nxt;
 	
 	
 	Montgomery Montgomery_m(
@@ -60,13 +60,13 @@ module Rsa256Core (
 		.N({1'b0, N}),
 		.a({1'b1, 256'b0}),
 		.b({1'b0, a}),
-		.k(11'd256),
+		.k(11'd255),
 		.result(t_prep),
 		.done(Prep_finish)
 	);
 
-	assign Mont_finish = Mont_fin_t && Mont_fin_m;
-	assign Mont_ready = (state == S_CALC && start_flag);
+	assign Mont_finish = Mont_finish_t && Mont_finish_m;
+	assign Mont_ready = (state == S_MONT && start_flag);
 	assign Prep_ready = (state == S_PREP && start_flag);
 	assign i_d_index = (cnt > 0)? (256-cnt): 0;
 	assign o_a_pow_d = (state == S_DONE)? m_r: 0;
@@ -84,12 +84,12 @@ module Rsa256Core (
 	// FSM
 	always_comb begin
 		state_nxt = state;
-		start_flag = 0;
+		start_flag_nxt = 0;
 		case(state)
 			S_IDLE: begin
 				if(i_start)	begin
 					state_nxt = S_PREP;
-					start_flag = 1;
+					start_flag_nxt = 1;
 				end
 			end
 			S_PREP: begin
@@ -101,7 +101,7 @@ module Rsa256Core (
 			S_CALC: begin
 				if(cnt != 257) begin
 					state_nxt = S_MONT;
-					start_flag = 1;
+					start_flag_nxt = 1;
 				end
 					
 				else state_nxt = S_DONE;
@@ -141,7 +141,7 @@ module Rsa256Core (
 	end
 
 	always_ff @(posedge i_clk or posedge i_rst) begin
-		if (i_rst) begin
+		if (!i_rst) begin
 			cnt <= 0;
 			state <= S_IDLE;
 			m_r <= 0;
@@ -149,6 +149,7 @@ module Rsa256Core (
 			N <= 0;
 			a <= 0;
 			d <= 0;
+			start_flag <= 0;
 		end else begin
 			cnt <= cnt_nxt;
 			state <= state_nxt;
@@ -157,6 +158,7 @@ module Rsa256Core (
 			d <= d_nxt;
 			m_r <= m_w;
 			t_r <= t_w;
+			start_flag <= start_flag_nxt;
 		end
 	end
 
