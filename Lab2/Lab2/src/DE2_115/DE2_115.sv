@@ -145,4 +145,12 @@ DE2_115_qsys my_qsys(
 	.uart_0_external_connection_txd(UART_TXD)
 );
 
+/*等下可能會用到的部分
+rsa_qsys my_qsys(
+	.clk_clk(CLOCK_50),
+	.reset_reset_n(KEY[0]),
+	.uart_0_external_connection_rxd(UART_RXD),
+	.uart_0_external_connection_txd(UART_TXD)
+);
+*/
 endmodule
