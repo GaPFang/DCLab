@@ -141,8 +141,8 @@ module Rsa256Core (
 		end
 	end
 
-	always_ff @(posedge i_clk or negedge i_rst) begin
-		if (!i_rst) begin
+	always_ff @(posedge i_clk or posedge i_rst) begin
+		if (i_rst) begin
 			cnt <= 0;
 			state <= S_IDLE;
 			m_r <= 0;
