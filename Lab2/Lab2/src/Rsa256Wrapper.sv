@@ -50,7 +50,7 @@ Rsa256Core rsa256_core(
     .o_finished(rsa_finished)
 );
 
-task StartRead;
+task automatic StartRead;
     input [4:0] addr;
     begin
         avm_read_w = 1;
@@ -58,7 +58,7 @@ task StartRead;
         avm_address_w = addr;
     end
 endtask
-task StartWrite;
+task automatic StartWrite;
     input [4:0] addr;
     begin
         avm_read_w = 0;
