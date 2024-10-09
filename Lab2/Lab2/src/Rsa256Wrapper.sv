@@ -41,7 +41,7 @@ assign avm_writedata = dec_r[(30-bytes_counter_r)*8+:8];
 
 Rsa256Core rsa256_core(
     .i_clk(avm_clk),
-    .i_rst(~avm_rst),
+    .i_rst(avm_rst),
     .i_start(rsa_start_r),
     .i_a(enc_r),
     .i_d(d_r),
@@ -50,7 +50,7 @@ Rsa256Core rsa256_core(
     .o_finished(rsa_finished)
 );
 
-task automatic StartRead;
+task StartRead;
     input [4:0] addr;
     begin
         avm_read_w = 1;
@@ -58,7 +58,7 @@ task automatic StartRead;
         avm_address_w = addr;
     end
 endtask
-task automatic StartWrite;
+task StartWrite;
     input [4:0] addr;
     begin
         avm_read_w = 0;

@@ -32,8 +32,8 @@ module ModuloProduct (
     assign done = done_r;
     assign result = result_r;
 
-	always_ff @(posedge clk or negedge rst_n) begin
-		if(!rst_n) begin
+	always_ff @(posedge clk or posedge rst_n) begin
+		if(rst_n) begin
 			start_flag <= 0;
             done_r <= 0;
             result_r <= 0;
@@ -59,8 +59,8 @@ module ModuloProduct (
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst_n) begin
-		if(!rst_n) begin
+	always_ff @(posedge clk or posedge rst_n) begin
+		if(rst_n) begin
 			state <= 0;
 		end
 		else begin 
