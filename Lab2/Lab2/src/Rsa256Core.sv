@@ -198,8 +198,8 @@ module ModuloProduct (
 	localparam S_IDLE = 2'b00;
 	localparam S_CALC = 2'b01;
 	localparam S_DONE = 2'b10;
-	localparam ITERATIONS_PER_CYCLE = 4;
-	localparam CYCLES = 7'd65;
+	localparam ITERATIONS_PER_CYCLE = 1;
+	localparam CYCLES = 9'd257;
     assign done = done_r;
     assign result = result_r;
 
@@ -279,7 +279,7 @@ module ModuloProduct (
 			//m_w[0] = 258'b0;
 			cycle_nxt = cycle + 1;
 			if (cycle < CYCLES) begin
-				for (i = 0; i <= 3; i = i + 1) begin
+				for (i = 0; i < 1; i = i + 1) begin
 					idx = cycle*ITERATIONS_PER_CYCLE + i;
 					if ((idx <= 256) && (idx <= k)) begin
 						//$display("%d: %d \n", idx, a[idx]);
@@ -404,7 +404,7 @@ module Montgomery (
         S_CALC
     } state_t;
 
-    localparam m_size = 4;
+    localparam m_size = 1;
     localparam cycles = 256 / m_size;
 
     state_t state, state_nxt;
