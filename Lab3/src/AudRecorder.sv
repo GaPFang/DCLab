@@ -22,6 +22,9 @@ module AudRecorder(
 
   integer i;
 
+  assign o_address = addr;
+  assign o_data = data;
+
   // FSM
   always_comb begin
     state_nxt = state;
