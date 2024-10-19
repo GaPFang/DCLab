@@ -56,7 +56,6 @@ parameter S_PLAY_PAUSE = 5;
 logic i2c_oen, i2c_sdat;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
-logic [7:0]  speed; 
 
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
@@ -94,20 +93,18 @@ AudDSP dsp0(
 	.i_start(),
 	.i_pause(),
 	.i_stop(),
-	.i_speed(speed),
+	.i_speed(),
 	.i_fast(),
 	.i_slow_0(), // constant interpolation
 	.i_slow_1(), // linear interpolation
 	.i_daclrck(i_AUD_DACLRCK),
 	.i_sram_data(data_play),
-	//.i_initial_addr(initial_addr),
 	.o_dac_data(dac_data),
 	.o_sram_addr(addr_play)
 );
 
 // === AudPlayer ===
 // receive data address from DSP and fetch data to sent to WM8731 with I2S protocal
-// player will handle the segmentation of the bits of the data
 AudPlayer player0(
 	.i_rst_n(i_rst_n),
 	.i_bclk(i_AUD_BCLK),
@@ -145,4 +142,3 @@ always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 end
 
 endmodule
-
