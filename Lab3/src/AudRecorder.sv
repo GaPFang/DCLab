@@ -54,7 +54,7 @@ module AudRecorder(
       end
       S_PAUSE: begin
         if (i_start) 
-          state_nxt = S_RECORD;
+          state_nxt = S_TMP_FIN;
         else if (i_stop) 
           state_nxt = S_IDLE;
       end
