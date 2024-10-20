@@ -57,6 +57,7 @@ logic i2c_oen, i2c_sdat;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
 logic [7:0]  speed; 
+logic ack_Ply2Dsp;
 
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
@@ -114,6 +115,7 @@ AudPlayer player0(
 	.i_daclrck(i_AUD_DACLRCK),
 	.i_en(), // enable AudPlayer only when playing audio, work with AudDSP
 	.i_dac_data(dac_data), //dac_data
+	.o_ack(ack_Ply2Dsp),
 	.o_aud_dacdat(o_AUD_DACDAT)
 );
 

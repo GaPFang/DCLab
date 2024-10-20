@@ -4,7 +4,8 @@ module AudPlayer(
   input i_daclrck,
   input i_en,
   input [15:0] i_dac_data,
-  output o_aud_dacdat
+  output o_aud_dacdat,
+  output o_ack
 );
   // FSM states
   localparam S_IDLE = 3'd0;
@@ -18,17 +19,22 @@ module AudPlayer(
   logic [15:0] dac_data, dac_data_nxt;
   logic [2:0] state, state_nxt;
   logic proceed;
+  logic ack_flag, ack_flag_nxt;
 
   assign o_aud_dacdat = dac_data[cnt];
   assign proceed = (i_en && !i_daclrck);
+  assign o_ack = ack_flag;
 
   // FSM
   always_comb begin
     state_nxt = state;
+    ack_flag_nxt = 0;
     case(state) // Synopsys parallel_case full_case
       S_IDLE: begin
-        if (proceed) 
+        if (proceed) begin
           state_nxt = S_PLAY;
+          ack_flag_nxt = 1;
+        end
       end
       S_PLAY: begin
         if (cnt == 15) 
@@ -39,8 +45,10 @@ module AudPlayer(
           state_nxt = S_WAIT;
       end
       S_WAIT: begin
-        if (proceed) 
+        if (proceed) begin
           state_nxt = S_PLAY;
+          ack_flag_nxt = 1;
+        end
       end
     endcase
   end
@@ -69,11 +77,13 @@ module AudPlayer(
       cnt <= 0;
       state <= S_IDLE;
       dac_data <= 0;
+      ack_flag <= 0;
     end
     else begin
       cnt <= cnt_nxt;
       state <= state_nxt;
       dac_data <= dac_data_nxt;
+      ack_flag <= ack_flag_nxt;
     end
   end
 
