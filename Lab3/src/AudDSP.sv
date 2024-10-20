@@ -9,10 +9,12 @@ module AudDSP(
 	input i_slow_0, // constant interpolation
 	input i_slow_1, // linear interpolation
 	inout i_daclrck,
-	input i_sram_data,
+	input [15:0] i_sram_data,
+    input i_player_ack,
 	//input [19:0] i_initial_addr,
 	output [15:0] o_dac_data,
-	output [19:0] o_sram_addr
+	output [19:0] o_sram_addr,
+    output o_player_en
 );
 
 //parameters
@@ -29,6 +31,7 @@ localparam x0_125 = 8'b00000001;
 
 //address
 localparam START_ADDR = 20'b0;
+localparam END_ADDR = 21'b100000000000000000000;
 //
 //
 
@@ -36,8 +39,8 @@ localparam START_ADDR = 20'b0;
 typedef enum logic [2:0] {
     S_IDLE     = 3'b000,
     S_READMEM_AND_PLAY = 3'b001,
-    S_PAUSE = 3'b011;
-    S_STOP = 3'b100;
+    S_PAUSE = 3'b011,
+    S_STOP = 3'b100
 } state_t;
 
 state_t state_r, state_w;
@@ -48,15 +51,18 @@ logic signed [15:0] o_processed_data_r, o_processed_data_w;
 logic signed [19:0] temp_data1, temp_data2;
 logic signed [15:0] old_data_r, old_data_w;
 logic [19:0] o_sram_addr_r, o_sram_addr_w;
-logic daclrck_prev;
+logic daclrck_prev, daclrck_prev2;
 logic transmission_en_r, transmission_en_w;
 logic [7:0] speed_r, speed_w;
 logic [5:0] cnt, cnt_nxt;
+logic o_player_en_r, o_player_en_w;
+logic [2:0] fall_cnt, fall_cnt_nxt;
 //
 
 //assign
 assign o_dac_data = o_processed_data_r;
 assign o_sram_addr = o_sram_addr_r;
+assign o_player_en = o_player_en_r;
 //
 
 //combinational part
@@ -67,9 +73,19 @@ always_comb begin
     o_sram_addr_w = o_sram_addr_r;
     transmission_en_w = 0; 
     speed_w = speed_r;
-    cnt_nxt = 0;
+    cnt_nxt = cnt;
     old_data_w = old_data_r;
     o_processed_data_w = o_processed_data_r;
+    fall_cnt_nxt = fall_cnt;
+    //o_player_en_w = o_player_en_w;
+    if (i_player_ack) begin
+        o_player_en_w = 1'b0;
+    end else begin
+        o_player_en_w = o_player_en_r;
+    end
+    if ((daclrck_prev2 == 1'b1) && (i_daclrck == 1'b1)) begin
+        fall_cnt_nxt = 0;
+    end
     case (state_r)
         S_IDLE: begin
             if (i_start) begin
@@ -77,50 +93,81 @@ always_comb begin
             end
             //TODO: reset address 
             o_sram_addr_w = START_ADDR;
+            cnt_nxt = 0;
         end
 
         S_READMEM_AND_PLAY:begin
             if (i_pause) begin
                 state_w = S_PAUSE;
+                o_player_en_w = 1'b0;
                 //and the output address is still held
             end
 
             if (i_stop) begin
                 state_w = S_STOP;
+                o_player_en_w = 1'b0;
             end
 
             //wait until LRC transition
             //we choose the left channel for transmission
-            if ((daclrck_prev == 1) && (i_daclrck == 0)) begin
-                transmission_en_w = 1;
+            if ((daclrck_prev2 == 1'b1) && (i_daclrck == 1'b0)) begin
+                transmission_en_w = 1'b1;
+                //o_player_en_w = 1'b1;
             end
 
+            
             //start transmitting aud data
-            if (transmission_en_r) begin
+            if (transmission_en_r && (fall_cnt == 0)) begin
                 //we handle the playspeed by sending address with different interval
+                fall_cnt_nxt = 2;
+                o_player_en_w = 1'b1;
                 case(speed_r)
                     x8: begin
                         //address has been delivered to SRAM
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        o_sram_addr_w = o_sram_addr_r + 20'd8;
+                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
+                        //o_sram_addr_w = o_sram_addr_r + 20'd8;
+                        if (o_sram_addr_r > (END_ADDR - 20'd09)) begin //about to finish playing
+                            o_sram_addr_w = o_sram_addr_r;
+                            state_w = S_IDLE;
+                        end else begin
+                            o_sram_addr_w = o_sram_addr_r + 20'd8;
+                        end
                         transmission_en_w = 0;
                     end
 
                     x4: begin
                         o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        o_sram_addr_w = o_sram_addr_r + 20'd4;
+                        //o_sram_addr_w = o_sram_addr_r + 20'd4;
+                        if (o_sram_addr_r > (END_ADDR - 20'd05)) begin //about to finish playing
+                            o_sram_addr_w = o_sram_addr_r;
+                            state_w = S_IDLE;
+                        end else begin
+                            o_sram_addr_w = o_sram_addr_r + 20'd4;
+                        end
                         transmission_en_w = 0;
                     end
 
                     x2: begin
                         o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        o_sram_addr_w = o_sram_addr_r + 20'd2;
+                        //o_sram_addr_w = o_sram_addr_r + 20'd2;
+                        if (o_sram_addr_r > (END_ADDR - 20'd03)) begin //about to finish playing
+                            o_sram_addr_w = o_sram_addr_r;
+                            state_w = S_IDLE;
+                        end else begin
+                            o_sram_addr_w = o_sram_addr_r + 20'd2;
+                        end
                         transmission_en_w = 0;
                     end
 
                     x1: begin
                         o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        o_sram_addr_w = o_sram_addr_r + 20'd1;
+                        //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                        if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                            o_sram_addr_w = o_sram_addr_r;
+                            state_w = S_IDLE;
+                        end else begin
+                            o_sram_addr_w = o_sram_addr_r + 20'd1;
+                        end
                         transmission_en_w = 0;
                     end
 
@@ -129,7 +176,13 @@ always_comb begin
                             o_processed_data_w = $signed(i_sram_data);
                             if (cnt >= 1) begin
                                 cnt_nxt = 0;
-                                o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                                    o_sram_addr_w = o_sram_addr_r;
+                                    state_w = S_IDLE;
+                                end else begin
+                                    o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                end
                             end else begin
                                 cnt_nxt = 1;
                                 o_sram_addr_w = o_sram_addr_r;
@@ -144,7 +197,13 @@ always_comb begin
                                 o_processed_data_w = temp_data2[15:0];
                             end else begin
                                 cnt_nxt = 1;
-                                o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                                    o_sram_addr_w = o_sram_addr_r;
+                                    state_w = S_IDLE;
+                                end else begin
+                                    o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                end
                                 o_processed_data_w = $signed(i_sram_data);
                             end
                         end
@@ -156,7 +215,13 @@ always_comb begin
                             o_processed_data_w = $signed(i_sram_data);
                             if (cnt >= 3) begin
                                 cnt_nxt = 0;
-                                o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                                    o_sram_addr_w = o_sram_addr_r;
+                                    state_w = S_IDLE;
+                                end else begin
+                                    o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                end
                             end else begin
                                 cnt_nxt = cnt + 1;
                                 o_sram_addr_w = o_sram_addr_r;
@@ -171,12 +236,18 @@ always_comb begin
                                 end
                                 
                                 o_sram_addr_w = o_sram_addr_r;
-                                temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd04 - cnt);// new data + old data
+                                temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd04 - $signed(cnt));// new data + old data
                                 temp_data2 = $signed(temp_data1) >> 2;
                                 o_processed_data_w = temp_data2[15:0];
                             end else begin //cnt == 0
                                 cnt_nxt = 1;
-                                o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                                    o_sram_addr_w = o_sram_addr_r;
+                                    state_w = S_IDLE;
+                                end else begin
+                                    o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                end
                                 o_processed_data_w = $signed(i_sram_data);
                                 old_data_w = $signed(i_sram_data);
                             end
@@ -189,7 +260,13 @@ always_comb begin
                             o_processed_data_w = $signed(i_sram_data);
                             if (cnt >= 7) begin
                                 cnt_nxt = 0;
-                                o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                                    o_sram_addr_w = o_sram_addr_r;
+                                    state_w = S_IDLE;
+                                end else begin
+                                    o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                end
                             end else begin
                                 cnt_nxt = cnt + 1;
                                 o_sram_addr_w = o_sram_addr_r;
@@ -204,12 +281,18 @@ always_comb begin
                                 end
                                 
                                 o_sram_addr_w = o_sram_addr_r;
-                                temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd08 - cnt);// new data + old data
+                                temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd08 - $signed(cnt));// new data + old data
                                 temp_data2 = $signed(temp_data1) >> 3;
                                 o_processed_data_w = temp_data2[15:0];
                             end else begin //cnt == 0
                                 cnt_nxt = 1;
-                                o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
+                                    o_sram_addr_w = o_sram_addr_r;
+                                    state_w = S_IDLE;
+                                end else begin
+                                    o_sram_addr_w = o_sram_addr_r + 20'd1;
+                                end
                                 o_processed_data_w = $signed(i_sram_data);
                                 old_data_w = $signed(i_sram_data);
                             end
@@ -221,13 +304,20 @@ always_comb begin
         end
 
         S_PAUSE: begin
-            state_w = S_READMEM_AND_PLAY;
+            if (i_start) begin
+                state_w = S_READMEM_AND_PLAY;
+            end
+            else if (i_stop) begin
+                state_w = S_STOP;
+            end
+            o_player_en_w = 1'b0;
             //start from the same address as before in the next cycle
         end
 
         S_STOP: begin
             state_w = S_IDLE;
-            
+            cnt_nxt = 0;
+            o_player_en_w = 1'b0;
         end
         //default: 
     endcase
@@ -235,20 +325,27 @@ end
 //
 //
 //sequential part
+
+
 always_ff @(posedge i_clk or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		o_processed_data_r <= 0;
         o_sram_addr_r <= 0;
         daclrck_prev <= 0;
+        daclrck_prev2 <= 0;
         transmission_en_r <= 0;
         speed_r <= 0;
         cnt <= 0;
         old_data_r <= 0;
+        o_player_en_r <= 0;
+        state_r <= 3'b000;
+        fall_cnt <= 0;
 	end
 	else begin
         o_processed_data_r <= o_processed_data_w;
 		o_sram_addr_r <= o_sram_addr_w;
         daclrck_prev <= i_daclrck;
+        daclrck_prev2 <= daclrck_prev;
         transmission_en_r <= transmission_en_w;
         if(state_r == S_IDLE) begin
             speed_r <= i_speed;
@@ -257,6 +354,9 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         end
         cnt <= cnt_nxt;
         old_data_r <= old_data_w;
+        o_player_en_r <= o_player_en_w;
+        state_r <= state_w;
+        fall_cnt <= fall_cnt_nxt;
 	end
 end
 //

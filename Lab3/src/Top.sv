@@ -56,7 +56,8 @@ parameter S_PLAY_PAUSE = 5;
 logic i2c_oen, i2c_sdat;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
-logic [7:0]  speed; 
+logic [7:0]  speed;
+logic player_en, player_ack; 
 
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
@@ -100,9 +101,11 @@ AudDSP dsp0(
 	.i_slow_1(), // linear interpolation
 	.i_daclrck(i_AUD_DACLRCK),
 	.i_sram_data(data_play),
+	.i_player_ack(player_ack),
 	//.i_initial_addr(initial_addr),
 	.o_dac_data(dac_data),
-	.o_sram_addr(addr_play)
+	.o_sram_addr(addr_play),
+	.o_player_en(player_en)
 );
 
 // === AudPlayer ===
@@ -112,7 +115,7 @@ AudPlayer player0(
 	.i_rst_n(i_rst_n),
 	.i_bclk(i_AUD_BCLK),
 	.i_daclrck(i_AUD_DACLRCK),
-	.i_en(), // enable AudPlayer only when playing audio, work with AudDSP
+	.i_en(player_en), // enable AudPlayer only when playing audio, work with AudDSP
 	.i_dac_data(dac_data), //dac_data
 	.o_aud_dacdat(o_AUD_DACDAT)
 );
