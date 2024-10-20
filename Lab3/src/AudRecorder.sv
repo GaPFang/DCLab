@@ -10,15 +10,16 @@ module AudRecorder(
   output [15:0] o_data
 );
   // FSM states
-  localparam S_IDLE = 2'd0;
-  localparam S_RECORD = 2'd1;
-  localparam S_PAUSE = 2'd2;
-  localparam S_WAIT = 2'd3; // wait for the next lrc right channel (lrc = high)
+  localparam S_IDLE = 3'd0;
+  localparam S_RECORD = 3'd1;
+  localparam S_PAUSE = 3'd2;
+  localparam S_WAIT = 3'd3; // wait for the next lrc right channel (lrc = high)
+  localparam S_TMP_FIN = 3'd4;
   
   logic [3:0] cnt, cnt_nxt;
   logic [19:0] addr, addr_nxt;
   logic [15:0] data, data_nxt;
-  logic [1:0] state, state_nxt;
+  logic [2:0] state, state_nxt;
 
   integer i;
 
@@ -39,6 +40,10 @@ module AudRecorder(
         else if (i_stop) 
           state_nxt = S_IDLE;
         else if (cnt == 15) 
+          state_nxt = S_TMP_FIN;
+      end
+      S_TMP_FIN: begin
+        if (!i_lrc) 
           state_nxt = S_WAIT;
       end
       S_WAIT: begin
@@ -61,10 +66,11 @@ module AudRecorder(
     cnt_nxt = cnt;
     addr_nxt = addr;
     data_nxt = data;
-    case(state) // Synopsys parallel_case
+    case(state) // Synopsys parallel_case full_case
       S_IDLE: begin
         cnt_nxt = 0;
         data_nxt = 0;
+        addr_nxt = 0;
       end
       S_RECORD: begin
         // store data from small address to large address
@@ -81,11 +87,7 @@ module AudRecorder(
           cnt_nxt = cnt + 1;
         end
       end
-      S_PAUSE: begin
-        cnt_nxt = 0;
-        data_nxt = 0;
-      end
-      S_WAIT: begin
+      S_PAUSE, S_WAIT, S_TMP_FIN: begin
         cnt_nxt = 0;
         data_nxt = 0;
       end

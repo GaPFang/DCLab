@@ -7,15 +7,16 @@ module AudPlayer(
   output o_aud_dacdat
 );
   // FSM states
-  localparam S_IDLE = 2'd0;
-  localparam S_PLAY = 2'd1;
-  // localparam S_PAUSE = 2'd2;
-  localparam S_WAIT = 2'd3; // wait for the next lrc left channel (lrc = low)
+  localparam S_IDLE = 3'd0;
+  localparam S_PLAY = 3'd1;
+  // localparam S_PAUSE = 3'd2;
+  localparam S_WAIT = 3'd3; // wait for the next lrc left channel (lrc = low)
+  localparam S_TMP_FIN = 3'd4;
 
   
   logic [3:0] cnt, cnt_nxt;
   logic [15:0] dac_data, dac_data_nxt;
-  logic [1:0] state, state_nxt;
+  logic [2:0] state, state_nxt;
   logic proceed;
 
   assign o_aud_dacdat = dac_data[cnt];
@@ -31,6 +32,10 @@ module AudPlayer(
       end
       S_PLAY: begin
         if (cnt == 15) 
+          state_nxt = S_TMP_FIN;
+      end
+      S_TMP_FIN: begin
+        if (i_daclrck) 
           state_nxt = S_WAIT;
       end
       S_WAIT: begin
