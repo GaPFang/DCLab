@@ -3,7 +3,7 @@
 `define HCYCLE      (`CYCLE/2)
 `define MAX_CYCLE   10000000
 `define RST_DELAY   2
-`define INFILE      "indata.txt"
+`define INFILE      "tb/indata.txt"
 
 module testbed;
 
