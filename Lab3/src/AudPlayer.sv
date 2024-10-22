@@ -21,7 +21,7 @@ module AudPlayer(
   logic proceed;
   logic ack_flag, ack_flag_nxt;
 
-  assign o_aud_dacdat = dac_data[cnt];
+  assign o_aud_dacdat = (state == S_PLAY)? dac_data[cnt]:0;
   assign proceed = (i_en && !i_daclrck);
   assign o_ack = ack_flag;
 
