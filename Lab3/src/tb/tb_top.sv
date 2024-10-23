@@ -29,7 +29,7 @@ Top uut (
 	.i_clk(clk),
     .i_clk_100k(clk_100k),
     .i_AUD_BCLK(bclk),
-    .i_AUD_ADCLRCK(lrck),
+    .i_AUD_DACLRCK(lrck),
 	.i_key_0(keys[0]),
 	.i_key_1(keys[1]),
 	.i_key_2(keys[2]),
