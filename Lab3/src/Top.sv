@@ -75,8 +75,8 @@ logic [3:0] i2c_type;
 logic [19:0] addr_record, addr_play;
 logic recorder_start, recorder_pause, recorder_stop;
 logic [15:0] data_record, data_play, dac_data;
-logic [7:0]  speed;
-logic player_en; //, player_start, player_pause, player_stop;
+logic [7:0]  speed = 8'b00001000;
+logic player_en, player_start, player_pause, player_stop;
 logic ack_Ply2Dsp;
 
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
@@ -163,6 +163,12 @@ always_comb begin
 	cnt_w = cnt_r;
 	i2c_start = 0;
 	i2c_type = 0;
+	recorder_start = 0;
+	recorder_pause = 0;
+	recorder_stop = 0;
+	player_start = 0;
+	player_pause = 0;
+	player_stop = 0;
 	case (state_r)
 		S_START: begin
 			state_w = S_START_I2C;

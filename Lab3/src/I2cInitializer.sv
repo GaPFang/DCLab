@@ -47,13 +47,12 @@ logic [3:0] cnt_r, cnt_w;
 logic [3:0] type_r, type_w;
 
 logic [7:0] o_finished_r, o_finished_w;
-logic o_sclk_r;
 logic o_oen_r, o_oen_w;
 logic o_sdat_r, o_sdat_w;
 
 assign o_start = (state_r != S_IDLE) ? 1 : 0;
 assign o_finished = o_finished_r;
-assign o_sclk = o_sclk_r;
+assign o_sclk = (state_r == S_IDLE || state_r == S_START) ? 1 : i_clk;
 assign o_sdat = o_sdat_r;
 assign o_oen = o_oen_r;
 
@@ -86,7 +85,7 @@ always_comb begin
 		end
 		S_SEND_DATA: begin
 			cnt_w = cnt_r - 1;
-			case (type_r)
+			case (type_r) // synopsys full_case parallel_case
 				I_LEFT_LINE_IN: o_sdat_w = LeftLineIn[cnt_r];
 				I_RIGHT_LINE_IN: o_sdat_w = RightLineIn[cnt_r];
 				I_LEFT_PHONE_OUT: o_sdat_w = LeftPhoneOut[cnt_r];
@@ -122,30 +121,19 @@ always_comb begin
 	endcase
 end
 
-always_ff @(negedge i_clk or negedge i_rst_n) begin
-	if (~i_rst_n) begin
-		o_sclk_r <= 1;
-	end
-	else begin
-		o_sclk_r <= (state_r == S_IDLE | state_r == S_START) ? 1 : 0;
-	end
-end
-
 always_ff @(posedge i_clk or negedge i_rst_n) begin
 	if (~i_rst_n) begin
 		state_r <= S_IDLE;
 		cnt_r <= 0;
 		type_r <= 0;
 		o_finished_r <= 0;
-		o_sclk_r <= 1;
-		o_sdat_r <= 0;
+		o_sdat_r <= 1;
 		o_oen_r <= 1;
 	end else begin
 		state_r <= state_w;
 		cnt_r <= cnt_w;
 		type_r <= type_w;
 		o_finished_r <= o_finished_w;
-		o_sclk_r <= 1;
 		o_sdat_r <= o_sdat_w;
 		o_oen_r <= o_oen_w;
 	end
