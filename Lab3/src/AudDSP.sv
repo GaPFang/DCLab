@@ -338,7 +338,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
         cnt <= 0;
         old_data_r <= 0;
         o_player_en_r <= 0;
-        state_r <= 3'b000;
+        state_r <= S_IDLE;
         fall_cnt <= 0;
 	end
 	else begin
