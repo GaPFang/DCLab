@@ -45,7 +45,11 @@ module AudRecorder(
           state_nxt = S_TMP_FIN;
       end
       S_TMP_FIN: begin
-        if (!i_lrc) 
+        if (i_pause)
+          state_nxt = S_PAUSE;
+        else if (i_stop)  
+          state_nxt = S_IDLE;
+        else if (!i_lrc) 
           state_nxt = S_WAIT;
       end
       S_WAIT: begin
@@ -92,9 +96,12 @@ module AudRecorder(
           cnt_nxt = cnt + 1;
         end
       end
-      S_PAUSE, S_WAIT, S_TMP_FIN: begin
+      S_PAUSE: begin
         cnt_nxt = 0;
         data_nxt = 0;
+      end
+      S_WAIT, S_TMP_FIN: begin
+        cnt_nxt = 0;
       end
     endcase
   end
