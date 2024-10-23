@@ -68,7 +68,7 @@ assign o_player_en = o_player_en_r;
 //combinational part
 
 //FSM Behavior
-always_comb begin
+always@(*) begin
     state_w = state_r;
     o_sram_addr_w = o_sram_addr_r;
     transmission_en_w = 0; 

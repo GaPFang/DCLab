@@ -68,7 +68,7 @@ module AudRecorder(
   end
 
   // Counter
-  always_comb begin
+  always@(*) begin
     cnt_nxt = cnt;
     addr_nxt = addr;
     data_nxt = data;
