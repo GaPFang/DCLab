@@ -4,6 +4,7 @@ module Top (
 	input i_key_0,
 	input i_key_1,
 	input i_key_2,
+	input i_key_3,
 	// input [3:0] i_speed, // design how user can decide mode on your own
 	
 	// AudDSP and SRAM
@@ -146,7 +147,7 @@ AudPlayer player0(
 // === AudRecorder ===
 // receive data from WM8731 with I2S protocal and save to SRAM
 AudRecorder recorder0(
-	.i_rst_n(i_rst_n), 
+	.i_rst_n(i_rst_n),
 	.i_clk(i_AUD_BCLK),
 	.i_lrc(i_AUD_ADCLRCK),
 	.i_start(recorder_start),
@@ -204,10 +205,10 @@ always_comb begin
 			end
 		end
 		S_RECD: begin
-			if (i_key_0) begin
+			if (i_key_2) begin
 				state_w = S_RECD_PAUSE;
 				recorder_pause = 1;
-			end else if (i_key_2) begin
+			end else if (i_key_3) begin
 				state_w = S_IDLE;
 				recorder_stop = 1;
 			end
@@ -216,16 +217,16 @@ always_comb begin
 			if (i_key_0) begin
 				state_w = S_RECD;
 				recorder_start = 1;
-			end else if (i_key_2) begin
+			end else if (i_key_3) begin
 				state_w = S_IDLE;
 				recorder_stop = 1;
 			end
 		end
 		S_PLAY: begin
-			if (i_key_1) begin
+			if (i_key_2) begin
 				state_w = S_PLAY_PAUSE;
 				player_pause = 1;
-			end else if (i_key_2) begin
+			end else if (i_key_3) begin
 				state_w = S_IDLE;
 				player_stop = 1;
 			end
@@ -234,7 +235,7 @@ always_comb begin
 			if (i_key_1) begin
 				state_w = S_PLAY;
 				player_start = 1;
-			end else if (i_key_2) begin
+			end else if (i_key_3) begin
 				state_w = S_IDLE;
 				player_stop = 1;
 			end
