@@ -118,7 +118,7 @@ initial begin
             $display("End simulation");
             $finish;
         end
-        # (49 * `CYCLE);
+        # (500 * `CYCLE);
         for (i = 0; i < 4; i = i + 1) begin
             keys[i] = indata_mem[cnt][i];
         end
