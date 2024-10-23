@@ -3,6 +3,7 @@ module I2cInitializer (
 	input i_clk,
 	input i_start,
 	input [3:0] i_type,
+	output o_start,
 	output o_finished,
 	output o_sclk,
 	output o_sdat,
@@ -50,6 +51,7 @@ logic o_sclk_r;
 logic o_oen_r, o_oen_w;
 logic o_sdat_r, o_sdat_w;
 
+assign o_start = (state_r != S_IDLE) ? 1 : 0;
 assign o_finished = o_finished_r;
 assign o_sclk = o_sclk_r;
 assign o_sdat = o_sdat_r;
