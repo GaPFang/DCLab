@@ -205,6 +205,7 @@ always_comb begin
 			end
 		end
 		S_RECD: begin
+			recorder_start = 1;
 			if (i_key_2) begin
 				state_w = S_RECD_PAUSE;
 				recorder_pause = 1;
@@ -214,6 +215,7 @@ always_comb begin
 			end
 		end
 		S_RECD_PAUSE: begin
+			recorder_pause = 1;
 			if (i_key_0) begin
 				state_w = S_RECD;
 				recorder_start = 1;
