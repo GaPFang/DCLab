@@ -15,6 +15,8 @@ module AudRecorder(
   localparam S_PAUSE = 3'd2;
   localparam S_WAIT = 3'd3; // wait for the next lrc right channel (lrc = high)
   localparam S_TMP_FIN = 3'd4;
+  localparam END_ADDR = 21'b100000000000000000000;
+  localparam START_ADDR = 20'b0;
   
   logic [3:0] cnt, cnt_nxt;
   logic [19:0] addr, addr_nxt;
@@ -83,6 +85,9 @@ module AudRecorder(
         if(cnt == 15) begin
           cnt_nxt = 0;
           addr_nxt = addr + 1;
+          if (addr_nxt >= END_ADDR) begin
+              addr_nxt = START_ADDR;
+          end
         end else begin
           cnt_nxt = cnt + 1;
         end

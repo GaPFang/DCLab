@@ -68,11 +68,11 @@ initial begin
             $display("End simulation");
             $finish;
         end
-        # (49 * `CYCLE);
+        # (43 * `CYCLE);
         for (i = 0; i < 3; i = i + 1) begin
             keys[i] = indata_mem[cnt][i];
         end
-        # (`CYCLE);
+        # (7 * `CYCLE);
         for (i = 0; i < 3; i = i + 1) begin
             keys[i] = 0;
         end
