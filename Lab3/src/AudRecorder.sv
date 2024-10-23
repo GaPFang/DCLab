@@ -91,9 +91,12 @@ module AudRecorder(
           cnt_nxt = cnt + 1;
         end
       end
-      S_PAUSE, S_WAIT, S_TMP_FIN: begin
+      S_PAUSE: begin
         cnt_nxt = 0;
         data_nxt = 0;
+      end
+      S_WAIT, S_TMP_FIN: begin
+        cnt_nxt = 0;
       end
     endcase
   end
