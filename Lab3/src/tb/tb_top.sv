@@ -12,9 +12,9 @@
 module testbed;
 
 logic         clk, rst_n, clk_100k, bclk;
-logic keys[3];
+logic keys[4];
 
-logic  [ 2:0] indata_mem [0:9];
+logic  [ 3:0] indata_mem [0:9];
 
 initial begin
     $dumpfile("top.vcd");
@@ -28,7 +28,8 @@ Top uut (
     .i_AUD_BCLK(bclk),
 	.i_key_0(keys[0]),
 	.i_key_1(keys[1]),
-	.i_key_2(keys[2])
+	.i_key_2(keys[2]),
+    .i_key_3(keys[3])
 );
 
 initial $readmemb(`INFILE, indata_mem);
@@ -56,7 +57,7 @@ logic [3:0] cnt;
 initial begin
     wait(rst_n == 0);
     cnt = 0;
-    for (i = 0; i < 3; i = i + 1) begin
+    for (i = 0; i < 4; i = i + 1) begin
         keys[i] = 0;
     end
     wait(rst_n == 1);
@@ -64,16 +65,16 @@ initial begin
     # (3200 * `CYCLE);
     while (1) begin
         @(negedge clk);
-        if (indata_mem[cnt] === 3'bxxx) begin
+        if (indata_mem[cnt] === 4'bxxxx) begin
             $display("End simulation");
             $finish;
         end
         # (49 * `CYCLE);
-        for (i = 0; i < 3; i = i + 1) begin
+        for (i = 0; i < 4; i = i + 1) begin
             keys[i] = indata_mem[cnt][i];
         end
-        # (`CYCLE);
-        for (i = 0; i < 3; i = i + 1) begin
+        # (7 * `CYCLE);
+        for (i = 0; i < 4; i = i + 1) begin
             keys[i] = 0;
         end
         cnt = cnt + 1;
