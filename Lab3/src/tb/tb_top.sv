@@ -5,13 +5,16 @@
 `define I2C_HCYCLE  (`I2C_CYCLE/2)
 `define I2S_CYCLE   83.3333
 `define I2S_HCYCLE  (`I2S_CYCLE/2)
+`define LRCK_CYCLE  (`I2S_CYCLE*32)
+`define LRCK_HCYCLE (`LRCK_CYCLE/2)
 `define MAX_CYCLE   100000000
 `define RST_DELAY   2
 `define INFILE      "tb/keys.txt"
 
 module testbed;
 
-logic         clk, rst_n, clk_100k, bclk;
+logic         clk, rst_n, clk_100k, bclk_driver, lrck_driver;
+wire bclk, lrck;
 logic keys[4];
 
 logic  [ 3:0] indata_mem [0:9];
@@ -26,6 +29,7 @@ Top uut (
 	.i_clk(clk),
     .i_clk_100k(clk_100k),
     .i_AUD_BCLK(bclk),
+    .i_AUD_ADCLRCK(lrck),
 	.i_key_0(keys[0]),
 	.i_key_1(keys[1]),
 	.i_key_2(keys[2]),
@@ -40,8 +44,14 @@ always begin #(`CYCLE/2) clk = ~clk; end
 initial clk_100k = 1'b0;
 always begin #(`I2C_HCYCLE) clk_100k = ~clk_100k; end
 
-initial bclk = 1'b0;
-always begin #(`I2S_HCYCLE) bclk = ~bclk; end
+initial bclk_driver = 1'b0;
+always begin #(`I2S_HCYCLE) bclk_driver = ~bclk_driver; end
+
+initial lrck_driver = 1'b0;
+always begin #(`LRCK_HCYCLE) lrck_driver = ~lrck_driver; end
+
+assign bclk = bclk_driver;
+assign lrck = lrck_driver;
 
 initial begin
     rst_n = 1; # (               0.25 * `CYCLE);
