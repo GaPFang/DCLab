@@ -7,7 +7,8 @@ module AudRecorder(
   input i_stop,
   input i_data,
   output [19:0] o_address,
-  output [15:0] o_data
+  output [15:0] o_data,
+  output [3:0] o_sound
 );
   // FSM states
   localparam S_IDLE = 3'd0;
@@ -22,12 +23,15 @@ module AudRecorder(
   logic [19:0] addr, addr_nxt;
   logic [15:0] data, data_nxt;
   logic [2:0] state, state_nxt;
+  logic [10:0] cnt_lrc, cnt_lrc_nxt;
 
   integer i;
 
   assign o_address = addr;
   assign o_data = data;
-
+  // assign o_sound = (state == S_RECORD || state == S_WAIT || state == S_TMP_FIN) ? 1 : (state == S_PAUSE) ? 2 : 0;
+  // assign o_sound = {|addr[19:15], |addr[14:10], |addr[9:5], |addr[4:0]};
+  assign o_sound = cnt_lrc[10:7];
   // FSM
   always_comb begin
     state_nxt = state;
@@ -53,10 +57,12 @@ module AudRecorder(
           state_nxt = S_WAIT;
       end
       S_WAIT: begin
-        if (i_lrc) 
-          state_nxt = S_RECORD;
+        if (i_pause) 
+          state_nxt = S_PAUSE;
         else if (i_stop) 
           state_nxt = S_IDLE;
+        else if (i_lrc) 
+          state_nxt = S_RECORD;
       end
       S_PAUSE: begin
         if (i_start) 
@@ -72,6 +78,9 @@ module AudRecorder(
     cnt_nxt = cnt;
     addr_nxt = addr;
     data_nxt = data;
+    cnt_lrc_nxt = cnt_lrc;
+    if(i_lrc)
+      cnt_lrc_nxt = cnt_lrc + 1;
     case(state) // Synopsys parallel_case full_case
       S_IDLE: begin
         cnt_nxt = 0;
@@ -89,9 +98,9 @@ module AudRecorder(
         if(cnt == 15) begin
           cnt_nxt = 0;
           addr_nxt = addr + 1;
-          if (addr_nxt >= END_ADDR) begin
-              addr_nxt = START_ADDR;
-          end
+          // if (addr_nxt >= END_ADDR) begin
+          //     addr_nxt = START_ADDR;
+          // end
         end else begin
           cnt_nxt = cnt + 1;
         end
@@ -112,11 +121,13 @@ module AudRecorder(
       addr <= 0;
       data <= 0;
       state <= S_IDLE;
+      cnt_lrc <= 0;
     end else begin
       cnt <= cnt_nxt;
       addr <= addr_nxt;
       data <= data_nxt;
       state <= state_nxt;
+      cnt_lrc <= cnt_lrc_nxt;
     end
   end
 
