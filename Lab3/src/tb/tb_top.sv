@@ -5,7 +5,7 @@
 `define I2C_HCYCLE  (`I2C_CYCLE/2)
 `define I2S_CYCLE   83.3333
 `define I2S_HCYCLE  (`I2S_CYCLE/2)
-`define DACLRCK_CYCLE (`I2S_CYCLE * 30)
+`define DACLRCK_CYCLE (`I2S_CYCLE * 40)
 `define DACLRCK_HCYCLE (`DACLRCK_CYCLE / 2)
 `define MAX_CYCLE   100000000
 `define RST_DELAY   2
@@ -46,6 +46,7 @@ Top uut (
     .i_clk_100k(clk_100k),
     .i_AUD_BCLK(bclk),
     .i_AUD_DACLRCK(i_daclrck),
+    .i_AUD_ADCLRCK(i_daclrck),
 	.i_key_0(keys[0]),
 	.i_key_1(keys[1]),
 	.i_key_2(keys[2]),
@@ -66,7 +67,7 @@ initial bclk_driver = 1'b0;
 always begin #(`I2S_HCYCLE) bclk_driver = ~bclk_driver; end
 
 initial daclrck_driver = 1'b0;
-always begin #(`I2S_HCYCLE) daclrck_driver = ~daclrck_driver; end
+always begin #(`DACLRCK_HCYCLE) daclrck_driver = ~daclrck_driver; end
 
 initial begin
     rst_n = 1; # (               0.25 * `CYCLE);
@@ -82,7 +83,7 @@ logic [3:0] cnt;
   initial begin
     i_daclrck_driver = 0;
     forever begin
-      repeat(30) @(posedge clk);
+      repeat(100) @(posedge clk);
       i_daclrck_driver = ~i_daclrck_driver;
     end
   end

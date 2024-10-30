@@ -34,7 +34,7 @@ module AudRecorder(
     case(state) // Synopsys parallel_case
       S_IDLE: begin
         if (i_start) 
-          state_nxt = S_RECORD;
+          state_nxt = S_TMP_FIN;
       end
       S_RECORD: begin
         if (i_pause) 
