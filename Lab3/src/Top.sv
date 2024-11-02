@@ -15,18 +15,20 @@ module Top (
 	output        o_SRAM_OE_N,
 	output        o_SRAM_LB_N,
 	output        o_SRAM_UB_N,
-	
+	input 	[7:0] i_speed,
+	input 		  i_slow_0,
+	input         i_slow_1,
 	// I2C
 	input  i_clk_100k,
 	output o_I2C_SCLK,
 	inout  io_I2C_SDAT,
 	
 	// AudPlayer
-	input  i_AUD_ADCDAT,
+	input  signed i_AUD_ADCDAT,
 	inout  i_AUD_ADCLRCK,
 	input  i_AUD_BCLK,
 	inout  i_AUD_DACLRCK,
-	output o_AUD_DACDAT,
+	output signed o_AUD_DACDAT,
 	output [3:0] o_SHD_debug
 
 	// SEVENDECODER (optional display)
@@ -76,16 +78,30 @@ logic i2c_start, i2c_started, i2c_oen, i2c_sdat, i2c_finished;
 logic [3:0] i2c_type;
 logic [19:0] addr_record, addr_play;
 logic recorder_start, recorder_pause, recorder_stop;
-logic [15:0] data_record, data_play, dac_data;
-logic [7:0]  speed = 8'b00001000;
+logic signed [15:0] data_record, data_play, dac_data;
+logic [7:0]  speed_r, speed_w;
+logic slow0_r, slow0_w;
+logic slow1_r, slow1_w;
 logic player_en, player_start, player_pause, player_stop;
+logic player_start_r, player_start_w;
+logic player_pause_r, player_pause_w;
+logic player_stop_r, player_stop_w;
 logic ack_Ply2Dsp;
+logic [7:0] speed;
+logic slow0, slow1;
+
+assign player_start = player_start_r;
+assign player_pause = player_pause_r;
+assign player_stop = player_stop_r;
+assign speed = speed_r;
+assign slow0 = slow0_r;
+assign slow1 = slow1_r;
 
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
 assign o_SRAM_ADDR = (state_r == S_RECD) ? addr_record : addr_play[19:0];
-assign io_SRAM_DQ  = (state_r == S_RECD) ? data_record : 16'dz; // sram_dq as output
-assign data_play   = (state_r != S_RECD) ? io_SRAM_DQ : 16'd0; // sram_dq as input
+assign io_SRAM_DQ  = (state_r == S_RECD) ? $signed(data_record) : 16'sdz; // sram_dq as output
+assign data_play   = (state_r != S_RECD) ? $signed(io_SRAM_DQ) : 16'sd0; // sram_dq as input
 
 assign o_SRAM_WE_N = (state_r == S_RECD) ? 1'b0 : 1'b1;
 assign o_SRAM_CE_N = 1'b0;
@@ -103,7 +119,7 @@ assign o_SHD_debug = 4'b0000;
 I2cInitializer init0(
 	.i_rst_n(i_rst_n),
 	.i_clk(i_clk_100k),
-	.i_start(i2c_start),
+	.i_start(i2c_start),//是否要改成r
 	.i_type(i2c_type),
 	.o_start(i2c_started),
 	.o_finished(i2c_finished),
@@ -123,8 +139,8 @@ AudDSP dsp0(
 	.i_stop(player_stop),
 	.i_speed(speed),
 	.i_fast(1'b0),
-	.i_slow_0(1'b1), // constant interpolation
-	.i_slow_1(1'b0), // linear interpolation
+	.i_slow_0(slow0), // constant interpolation
+	.i_slow_1(slow1), // linear interpolation
 	.i_daclrck(i_AUD_DACLRCK),
 	.i_sram_data(data_play),
 	.i_player_ack(ack_Ply2Dsp),
@@ -170,9 +186,12 @@ always_comb begin
 	recorder_start = 0;
 	recorder_pause = 0;
 	recorder_stop = 0;
-	player_start = 0;
-	player_pause = 0;
-	player_stop = 0;
+	player_start_w = 0;
+	player_pause_w = 0;
+	player_stop_w = 0;
+	speed_w = speed_r;
+	slow0_w = i_slow_0;
+	slow1_w = i_slow_1;
 	case (state_r)
 		S_START: begin
 			state_w = S_START_I2C;
@@ -199,12 +218,13 @@ always_comb begin
 			end
 		end
 		S_IDLE: begin
+			speed_w = i_speed;
 			if (i_key_0) begin
 				state_w = S_RECD;
 				recorder_start = 1;
 			end else if (i_key_1) begin
 				state_w = S_PLAY;
-				player_start = 1;
+				player_start_w = 1;
 			end
 		end
 		S_RECD: begin
@@ -230,19 +250,19 @@ always_comb begin
 		S_PLAY: begin
 			if (i_key_2) begin
 				state_w = S_PLAY_PAUSE;
-				player_pause = 1;
+				player_pause_w = 1;
 			end else if (i_key_3) begin
 				state_w = S_IDLE;
-				player_stop = 1;
+				player_stop_w = 1;
 			end
 		end
 		S_PLAY_PAUSE: begin
 			if (i_key_1) begin
 				state_w = S_PLAY;
-				player_start = 1;
+				player_start_w = 1;
 			end else if (i_key_3) begin
 				state_w = S_IDLE;
-				player_stop = 1;
+				player_stop_w = 1;
 			end
 		end
 	endcase
@@ -252,9 +272,21 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		state_r <= S_START;
 		cnt_r <= 0;
+		player_start_r <= 0;
+		player_pause_r <= 0;
+		player_stop_r <= 0;
+		speed_r <= 8'b00001000;
+		slow0_r <= 0;
+		slow1_r <= 0;
 	end else begin
 		state_r <= state_w;
 		cnt_r <= cnt_w;
+		player_start_r <= player_start_w;
+		player_pause_r <= player_pause_w;
+		player_stop_r <= player_stop_w;
+		speed_r <= speed_w;
+		slow0_r <= slow0_w;
+		slow1_r <= slow1_w;
 	end
 end
 

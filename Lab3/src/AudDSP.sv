@@ -70,6 +70,8 @@ assign o_player_en = o_player_en_r;
 //FSM Behavior
 always@(*) begin
     state_w = state_r;
+	 temp_data1 = 20'sb0;
+	 temp_data2 = 20'sb0;
     o_sram_addr_w = o_sram_addr_r;
     transmission_en_w = 0; 
     speed_w = speed_r;
@@ -77,6 +79,7 @@ always@(*) begin
     old_data_w = old_data_r;
     o_processed_data_w = o_processed_data_r;
     fall_cnt_nxt = fall_cnt;
+    speed_w = i_speed;
     //o_player_en_w = o_player_en_w;
     if (i_player_ack) begin
         o_player_en_w = 1'b0;
@@ -91,7 +94,6 @@ always@(*) begin
             if (i_start) begin
                 state_w = S_READMEM_AND_PLAY;
             end
-            //TODO: reset address 
             o_sram_addr_w = START_ADDR;
             cnt_nxt = 0;
         end
@@ -112,15 +114,17 @@ always@(*) begin
             //we choose the left channel for transmission
             if ((daclrck_prev2 == 1'b1) && (i_daclrck == 1'b0)) begin
                 transmission_en_w = 1'b1;
-                //o_player_en_w = 1'b1;
+                o_player_en_w = 1'b1;
             end
 
-            
-            //start transmitting aud data
-            if (transmission_en_r && (fall_cnt == 0)) begin
-                //we handle the playspeed by sending address with different interval
+            if (transmission_en_r) begin
                 fall_cnt_nxt = 2;
-                o_player_en_w = 1'b1;
+                //o_player_en_w = 1'b1;
+            end
+            //start transmitting aud data
+            if ((fall_cnt == 0)) begin
+                //we handle the playspeed by sending address with different interval
+                
                 case(speed_r)
                     x8: begin
                         //address has been delivered to SRAM
@@ -327,31 +331,44 @@ end
 //sequential part
 
 
+
+always_ff @(posedge i_daclrck or negedge i_rst_n) begin
+    if (!i_rst_n) begin
+        o_sram_addr_r <= START_ADDR;
+    end
+    else begin
+        o_sram_addr_r <= o_sram_addr_w;
+    end
+end
+
 always_ff @(posedge i_clk or negedge i_rst_n) begin
 	if (!i_rst_n) begin
-		o_processed_data_r <= 0;
-        o_sram_addr_r <= 0;
+		o_processed_data_r <= 16'sb0;
+        
         daclrck_prev <= 0;
         daclrck_prev2 <= 0;
         transmission_en_r <= 0;
-        speed_r <= 0;
+        speed_r <= 8'b00001000;
         cnt <= 0;
-        old_data_r <= 0;
+        old_data_r <= 16'sb0;
         o_player_en_r <= 0;
         state_r <= S_IDLE;
         fall_cnt <= 0;
 	end
 	else begin
         o_processed_data_r <= o_processed_data_w;
-		o_sram_addr_r <= o_sram_addr_w;
+		
         daclrck_prev <= i_daclrck;
         daclrck_prev2 <= daclrck_prev;
         transmission_en_r <= transmission_en_w;
+        /*
         if(state_r == S_IDLE) begin
             speed_r <= i_speed;
         end else begin
             speed_r <= speed_w;
         end
+        */
+        speed_r <= speed_w;
         cnt <= cnt_nxt;
         old_data_r <= old_data_w;
         o_player_en_r <= o_player_en_w;

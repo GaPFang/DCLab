@@ -5,10 +5,9 @@ module AudRecorder(
   input i_start,
   input i_pause,
   input i_stop,
-  input i_data,
+  input signed i_data,
   output [19:0] o_address,
-  output [15:0] o_data,
-  output [3:0] o_sound
+  output signed [15:0] o_data
 );
   // FSM states
   localparam S_IDLE = 3'd0;
@@ -21,17 +20,16 @@ module AudRecorder(
   
   logic [3:0] cnt, cnt_nxt;
   logic [19:0] addr, addr_nxt;
-  logic [15:0] data, data_nxt;
+  logic signed [15:0] data, data_nxt;
   logic [2:0] state, state_nxt;
   logic [10:0] cnt_lrc, cnt_lrc_nxt;
 
   integer i;
 
   assign o_address = addr;
-  assign o_data = data;
+  assign o_data = $signed(data);
   // assign o_sound = (state == S_RECORD || state == S_WAIT || state == S_TMP_FIN) ? 1 : (state == S_PAUSE) ? 2 : 0;
   // assign o_sound = {|addr[19:15], |addr[14:10], |addr[9:5], |addr[4:0]};
-  assign o_sound = cnt_lrc[10:7];
   // FSM
   always_comb begin
     state_nxt = state;
@@ -77,24 +75,20 @@ module AudRecorder(
   always@(*) begin
     cnt_nxt = cnt;
     addr_nxt = addr;
-    data_nxt = data;
+    data_nxt = $signed(data);
     cnt_lrc_nxt = cnt_lrc;
     if(i_lrc)
       cnt_lrc_nxt = cnt_lrc + 1;
     case(state) // Synopsys parallel_case full_case
       S_IDLE: begin
         cnt_nxt = 0;
-        data_nxt = 0;
+        data_nxt = 16'sb0;
         addr_nxt = 0;
       end
       S_RECORD: begin
         // store data from small address to large address
-        for(i = 0; i < 16; i = i + 1) begin
-          if(i == cnt)  
-            data_nxt[i] = i_data;
-          else
-            data_nxt[i] = data[i];
-        end
+        data_nxt = $signed(data);
+		  data_nxt[cnt] = $signed(i_data);
         if(cnt == 15) begin
           cnt_nxt = 0;
           addr_nxt = addr + 1;
@@ -107,7 +101,7 @@ module AudRecorder(
       end
       S_PAUSE: begin
         cnt_nxt = 0;
-        data_nxt = 0;
+        data_nxt = 16'sb0;
       end
       S_WAIT, S_TMP_FIN: begin
         cnt_nxt = 0;
@@ -119,13 +113,13 @@ module AudRecorder(
     if (!i_rst_n) begin
       cnt <= 0;
       addr <= 0;
-      data <= 0;
+      data <= 16'sb0;
       state <= S_IDLE;
       cnt_lrc <= 0;
     end else begin
       cnt <= cnt_nxt;
       addr <= addr_nxt;
-      data <= data_nxt;
+      data <= $signed(data_nxt);
       state <= state_nxt;
       cnt_lrc <= cnt_lrc_nxt;
     end

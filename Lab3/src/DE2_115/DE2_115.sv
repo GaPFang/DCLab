@@ -136,10 +136,12 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
+
 logic key0down, key1down, key2down, key3down;
 logic CLK_12M, CLK_100K, CLK_800K;
 logic [3:0] recorder_debug;
-
+logic [7:0] display_speed0, display_speed1;
+//logic [7:0] speed = {SW[8], SW[7], SW[6], SW[5], SW[4], SW[3], SW[2], SW[1]};
 assign AUD_XCK = CLK_12M;
 
 Altpll pll0( // generate with qsys, please follow lab2 tutorials
@@ -196,6 +198,9 @@ Top top0(
 	.o_SRAM_OE_N(SRAM_OE_N),
 	.o_SRAM_LB_N(SRAM_LB_N),
 	.o_SRAM_UB_N(SRAM_UB_N),
+	.i_speed(SW[8:1]),
+	.i_slow_0(SW[16]),
+	.i_slow_1(SW[17]),
 	
 	// I2C
 	.i_clk_100k(CLK_100K),
@@ -227,12 +232,26 @@ Top top0(
 	// .o_ledg(LEDG), // [8:0]
 	// .o_ledr(LEDR) // [17:0]
 );
-
+/*
 SevenHexDecoder seven_dec0(
-	.i_hex(recorder_debug),
+	.i_hex(0),
 	.o_seven_ten(HEX1),
 	.o_seven_one(HEX0)
 );
+
+SevenHexDecoder seven_dec1(
+	.i_hex(0),
+	.o_seven_ten(HEX3),
+	.o_seven_one(HEX2)
+);
+
+SevenHexDecoder seven_dec2(
+	.i_hex(0),
+	.o_seven_ten(HEX5),
+	.o_seven_one(HEX4)
+);
+*/
+
 
 // SevenHexDecoder seven_dec1(
 // 	.i_num(recd_time),
@@ -241,8 +260,8 @@ SevenHexDecoder seven_dec0(
 // );
 
 // comment those are use for display
-// assign HEX0 = '1;
-// assign HEX1 = '1;
+assign HEX0 = '1;
+assign HEX1 = '1;
 assign HEX2 = '1;
 assign HEX3 = '1;
 assign HEX4 = '1;
@@ -250,4 +269,42 @@ assign HEX5 = '1;
 assign HEX6 = '1;
 assign HEX7 = '1;
 
+/*
+always @(*) begin
+	case(SW[8:1])
+		x8: begin
+			display_speed1 = 8'd80;
+			display_speed0 = 8'd0;
+		end
+		x4:begin
+			display_speed1 = 8'd40;
+			display_speed0 = 8'd0;
+		end
+		x2: begin
+			display_speed1 = 8'd20;
+			display_speed0 = 8'd0;
+		end
+		x1: begin
+			display_speed1 = 8'd10;
+			display_speed0 = 8'd0;
+		end
+		x0_5: begin
+			display_speed1 = 8'd05;
+			display_speed0 = 8'd0;
+		end
+		x0_25: begin
+			display_speed1 = 8'd02;
+			display_speed0 = 8'd50;
+		end
+		x0_125: begin
+			display_speed1 = 8'd01;
+			display_speed0 = 8'd25;
+		end
+		default: begin
+			display_speed1 = 8'd0;
+			display_speed0 = 8'd0;
+		end
+	endcase
+end
+*/
 endmodule

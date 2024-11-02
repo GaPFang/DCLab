@@ -10,19 +10,21 @@ module I2cInitializer (
 	output o_oen // you are outputing (you are not outputing only when you are "ack"ing.)
 );
 
-localparam I_LEFT_LINE_IN  = 4'b0000;
-localparam I_RIGHT_LINE_IN = 4'b0001;
-localparam I_LEFT_PHONE_OUT = 4'b0010;
-localparam I_RIGHT_PHONE_OUT = 4'b0011;
-localparam I_ANALOG_PATH = 4'b0100;
-localparam I_DIGITAL_PATH = 4'b0101;
-localparam I_POWER_DOWN = 4'b0110;
-localparam I_DIGITAL_FORMAT = 4'b0111;
-localparam I_SAMPLE = 4'b1000;
-localparam I_ACTIVE = 4'b1001;
+localparam I_RESET = 4'b0000;
+localparam I_LEFT_LINE_IN  = 4'b1010;
+localparam I_RIGHT_LINE_IN = 4'b1001;
+localparam I_LEFT_PHONE_OUT = 4'b1000;
+localparam I_RIGHT_PHONE_OUT = 4'b0111;
+localparam I_ANALOG_PATH = 4'b0001;
+localparam I_DIGITAL_PATH = 4'b0010;
+localparam I_POWER_DOWN = 4'b0011;
+localparam I_DIGITAL_FORMAT = 4'b0100;
+localparam I_SAMPLE = 4'b0101;
+localparam I_ACTIVE = 4'b0110;
 
 localparam Prefix 		 = 8'b00110100;
 
+localparam Reset         = 16'b0001111000000000;
 localparam LeftLineIn    = 16'b0000000010010111;
 localparam RightLineIn   = 16'b0000001010010111;
 localparam LeftPhoneOut  = 16'b0000010001111001;
@@ -86,6 +88,7 @@ always_comb begin
 		S_SEND_DATA: begin
 			cnt_w = cnt_r - 1;
 			case (type_r) // synopsys full_case parallel_case
+				I_RESET: o_sdat_w = Reset[cnt_r];
 				I_LEFT_LINE_IN: o_sdat_w = LeftLineIn[cnt_r];
 				I_RIGHT_LINE_IN: o_sdat_w = RightLineIn[cnt_r];
 				I_LEFT_PHONE_OUT: o_sdat_w = LeftPhoneOut[cnt_r];
@@ -127,15 +130,25 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		cnt_r <= 0;
 		type_r <= 0;
 		o_finished_r <= 0;
-		o_sdat_r <= 1;
-		o_oen_r <= 1;
+		//
+		// o_oen_r <= 1;
 	end else begin
 		state_r <= state_w;
 		cnt_r <= cnt_w;
 		type_r <= type_w;
 		o_finished_r <= o_finished_w;
-		o_sdat_r <= o_sdat_w;
+		//o_sdat_r <= o_sdat_w;
+		// o_oen_r <= o_oen_w;
+	end
+end
+
+always_ff @(negedge i_clk or negedge i_rst_n) begin
+	if (~i_rst_n) begin
+		o_oen_r <= 1;
+		o_sdat_r <= 1;
+	end else begin
 		o_oen_r <= o_oen_w;
+		o_sdat_r <= o_sdat_w;
 	end
 end
 
