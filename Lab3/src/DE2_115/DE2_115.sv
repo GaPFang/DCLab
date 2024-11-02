@@ -141,6 +141,7 @@ logic key0down, key1down, key2down, key3down;
 logic CLK_12M, CLK_100K, CLK_800K;
 logic [3:0] recorder_debug;
 logic [7:0] display_speed0, display_speed1;
+logic [2:0] top_state;
 //logic [7:0] speed = {SW[8], SW[7], SW[6], SW[5], SW[4], SW[3], SW[2], SW[1]};
 assign AUD_XCK = CLK_12M;
 
@@ -213,8 +214,9 @@ Top top0(
 	.i_AUD_BCLK(AUD_BCLK),
 	.i_AUD_DACLRCK(AUD_DACLRCK),
 	.o_AUD_DACDAT(AUD_DACDAT),
-	.o_SHD_debug(recorder_debug)
+	.o_SHD_debug(recorder_debug),
 
+	.state(top_state)
 	// SEVENDECODER (optional display)
 	// .o_record_time(recd_time),
 	// .o_play_time(play_time),
@@ -232,19 +234,19 @@ Top top0(
 	// .o_ledg(LEDG), // [8:0]
 	// .o_ledr(LEDR) // [17:0]
 );
-/*
+
 SevenHexDecoder seven_dec0(
-	.i_hex(0),
-	.o_seven_ten(HEX1),
-	.o_seven_one(HEX0)
+	.i_hex(top_state),
+	.o_seven_ten(HEX7),
+	.o_seven_one(HEX6)
 );
 
 SevenHexDecoder seven_dec1(
-	.i_hex(0),
-	.o_seven_ten(HEX3),
-	.o_seven_one(HEX2)
+	.i_hex(SW[4:1]),
+	.o_seven_ten(HEX1),
+	.o_seven_one(HEX0)
 );
-
+/*
 SevenHexDecoder seven_dec2(
 	.i_hex(0),
 	.o_seven_ten(HEX5),
@@ -260,14 +262,14 @@ SevenHexDecoder seven_dec2(
 // );
 
 // comment those are use for display
-assign HEX0 = '1;
-assign HEX1 = '1;
+//assign HEX0 = '1;
+//assign HEX1 = '1;
 assign HEX2 = '1;
 assign HEX3 = '1;
 assign HEX4 = '1;
 assign HEX5 = '1;
-assign HEX6 = '1;
-assign HEX7 = '1;
+//assign HEX6 = '1;
+//assign HEX7 = '1;
 
 /*
 always @(*) begin

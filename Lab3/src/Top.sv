@@ -29,8 +29,9 @@ module Top (
 	input  i_AUD_BCLK,
 	inout  i_AUD_DACLRCK,
 	output signed o_AUD_DACDAT,
-	output [3:0] o_SHD_debug
+	output [3:0] o_SHD_debug,
 
+	output [2:0] state
 	// SEVENDECODER (optional display)
 	// output [5:0] o_record_time,
 	// output [5:0] o_play_time,
@@ -111,6 +112,7 @@ assign o_SRAM_UB_N = 1'b0;
 // assign o_SHD_debug = (recorder_start)? 1: (recorder_pause)? 2: 3;
 assign o_SHD_debug = 4'b0000;
 
+assign state = state_r;
 // below is a simple example for module division
 // you can design these as you like
 

@@ -78,9 +78,9 @@ module AudDSP_tb;
     i_start = 0;
     i_pause = 0;
     i_stop = 0;
-    i_speed = 8'b00001000;  // 0.25x speed
+    i_speed = 8'b00000010;  // 0.25x speed
     i_slow_0 = 0;
-    i_slow_1 = 0;
+    i_slow_1 = 1;
     i_player_ack = 0;
     #50;
 
