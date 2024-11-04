@@ -349,11 +349,11 @@ always@(*) begin
                                 
                                 o_sram_addr_w = o_sram_addr_r;
                                 temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd05 - $signed(cnt));// new data + old data
-                                temp_data3 = ($signed(temp_data1)*(4'sb0110));
+                                temp_data3 = ($signed(temp_data1)*(8'sb01100110));
                                 // temp_data2 = temp_data3 >> 4;
                                 // temp_data2 = temp_data1/3;
                                 // temp_data3 = $signed(temp_data1 << 2'sd2) + temp_data1;
-                                temp_data2 = $signed(temp_data3 >>> 4'sd5);
+                                temp_data2 = $signed(temp_data3 >>> 5'sd9);
                                 o_processed_data_w = $signed(temp_data2[15:0]);
                             end else begin //cnt == 0
                                 cnt_nxt = 1;
@@ -397,11 +397,11 @@ always@(*) begin
                                 
                                 o_sram_addr_w = o_sram_addr_r;
                                 temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd06 - $signed(cnt));// new data + old data
-                                temp_data3 = ($signed(temp_data1)*(4'sb0101));
+                                temp_data3 = ($signed(temp_data1)*(8'sb01010101));
                                 // temp_data2 = temp_data3 >> 4;
                                 // temp_data2 = temp_data1/3;
                                 // temp_data3 = $signed(temp_data1 << 2'sd2) + temp_data1;
-                                temp_data2 = $signed(temp_data3 >>> 4'sd5);
+                                temp_data2 = $signed(temp_data3 >>> 5'sd9);
                                 o_processed_data_w = $signed(temp_data2[15:0]);
                             end else begin //cnt == 0
                                 cnt_nxt = 1;
@@ -445,11 +445,11 @@ always@(*) begin
                                 
                                 o_sram_addr_w = o_sram_addr_r;
                                 temp_data1 = $signed(i_sram_data)*$signed(cnt) + $signed(old_data_r)*(4'sd07 - $signed(cnt));// new data + old data
-                                temp_data3 = ($signed(temp_data1)*(4'sb0101));
+                                temp_data3 = ($signed(temp_data1)*(8'sb01001001));
                                 // temp_data2 = temp_data3 >> 4;
                                 // temp_data2 = temp_data1/3;
                                 // temp_data3 = $signed(temp_data1 << 2'sd2) + temp_data1;
-                                temp_data2 = $signed(temp_data3 >>> 4'sd6);
+                                temp_data2 = $signed(temp_data3 >>> 5'sd9);
                                 o_processed_data_w = $signed(temp_data2[15:0]);
                             end else begin //cnt == 0
                                 cnt_nxt = 1;
