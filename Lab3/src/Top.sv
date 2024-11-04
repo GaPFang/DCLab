@@ -18,6 +18,8 @@ module Top (
 	input 	[7:0] i_speed,
 	input 		  i_slow_0,
 	input         i_slow_1,
+	input		  i_left_en,
+	input		  i_right_en,
 	// I2C
 	input  i_clk_100k,
 	output o_I2C_SCLK,
@@ -25,9 +27,9 @@ module Top (
 	
 	// AudPlayer
 	input  signed i_AUD_ADCDAT,
-	inout  i_AUD_ADCLRCK,
+	input  i_AUD_ADCLRCK,
 	input  i_AUD_BCLK,
-	inout  i_AUD_DACLRCK,
+	input  i_AUD_DACLRCK,
 	output signed o_AUD_DACDAT,
 	output [3:0] o_SHD_debug,
 
@@ -157,6 +159,13 @@ I2cInitializer init0(
 // === AudDSP ===
 // responsible for DSP operations including fast play and slow play at different speed
 // in other words, determine which data addr to be fetch for player 
+
+logic signed [15:0] dac_data0, dac_data1;
+logic [19:0] addr_play0, addr_play1;
+logic player_en0, player_en1;
+
+assign addr_play = i_left_en ? addr_play0 : addr_play1;
+
 AudDSP dsp0(
 	.i_rst_n(i_rst_n),
 	.i_clk(i_clk),
@@ -180,28 +189,59 @@ AudDSP dsp0(
 // === AudPlayer ===
 // receive data address from DSP and fetch data to sent to WM8731 with I2S protocal
 // player will handle the segmentation of the bits of the data
+
+logic ack_Ply2Dsp1;
+
 AudPlayer player0(
 	.i_rst_n(i_rst_n),
 	.i_bclk(i_AUD_BCLK),
 	.i_daclrck(i_AUD_DACLRCK),
-	.i_en(player_en), // enable AudPlayer only when playing audio, work with AudDSP
-	.i_dac_data(dac_data), //dac_data
+	.i_en(player_en0), // enable AudPlayer only when playing audio, work with AudDSP
+	.i_dac_data(dac_data0), //dac_data
 	.o_ack(ack_Ply2Dsp),
-	.o_aud_dacdat(o_AUD_DACDAT)
+	.o_aud_dacdat(o_AUD_DACDAT0)
+);
+
+AudPlayer player1(
+	.i_rst_n(i_rst_n),
+	.i_bclk(i_AUD_BCLK),
+	.i_daclrck(~i_AUD_DACLRCK),
+	.i_en(player_en1), // enable AudPlayer only when playing audio, work with AudDSP
+	.i_dac_data(dac_data1), //dac_data
+	.o_ack(ack_Ply2Dsp1),
+	.o_aud_dacdat(o_AUD_DACDAT1)
 );
 
 // === AudRecorder ===
 // receive data from WM8731 with I2S protocal and save to SRAM
+logic [15:0] data_record0, data_record1;
+logic [19:0] addr_record0, addr_record1;
+
 AudRecorder recorder0(
 	.i_rst_n(i_rst_n),
 	.i_clk(i_AUD_BCLK),
 	.i_lrc(i_AUD_ADCLRCK),
-	.i_start(recorder_start),
+	.i_start(recorder_start & i_left_en),
 	.i_pause(recorder_pause),
 	.i_stop(recorder_stop),
 	.i_data(i_AUD_ADCDAT),
-	.o_address(addr_record),
-	.o_data(data_record)
+	.o_address(addr_record0),
+	.o_data(data_record0)
+);
+
+assign addr_record = i_left_en ? addr_record0 : addr_record1;
+assign data_record = i_left_en ? data_record0 : data_record1;
+
+AudRecorder recorder1(
+	.i_rst_n(i_rst_n),
+	.i_clk(i_AUD_BCLK),
+	.i_lrc(i_AUD_ADCLRCK),
+	.i_start(recorder_start & i_right_en),
+	.i_pause(recorder_pause),
+	.i_stop(recorder_stop),
+	.i_data(i_AUD_ADCDAT),
+	.o_address(addr_record1),
+	.o_data(data_record1)
 );
 
 always_comb begin

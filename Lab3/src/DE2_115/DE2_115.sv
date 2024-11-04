@@ -203,6 +203,8 @@ Top top0(
 	.i_speed(SW[8:1]),
 	.i_slow_0(SW[16]),
 	.i_slow_1(SW[17]),
+	.i_left_en(SW[14]),
+	.i_right_en(SW[15]),
 	
 	// I2C
 	.i_clk_100k(CLK_100K),

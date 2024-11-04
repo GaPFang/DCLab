@@ -8,7 +8,7 @@ module AudDSP(
 	input i_fast,
 	input i_slow_0, // constant interpolation
 	input i_slow_1, // linear interpolation
-	inout i_daclrck,
+	input i_daclrck,
 	input [15:0] i_sram_data,
     input i_player_ack,
 	//input [19:0] i_initial_addr,
@@ -141,109 +141,18 @@ always@(*) begin
             //start transmitting aud data
             if ((fall_cnt == 0)) begin
                 //we handle the playspeed by sending address with different interval
-                
+
+                if (speed_r >= 8'b00001000) begin
+                    o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
+                    if (o_sram_addr_r > (END_ADDR - speed_r - 1)) begin //about to finish playing
+                        o_sram_addr_w = o_sram_addr_r;
+                        state_w = S_IDLE;
+                    end else begin
+                        o_sram_addr_w = o_sram_addr_r + speed_r;
+                    end
+                    transmission_en_w = 0;
+                end                
                 case(speed_r)
-                    x8: begin
-                        //address has been delivered to SRAM
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
-                        //o_sram_addr_w = o_sram_addr_r + 20'd8;
-                        if (o_sram_addr_r > (END_ADDR - 20'd09)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd8;
-                        end
-                        transmission_en_w = 0;
-                    end
-
-                    x7: begin
-                        //address has been delivered to SRAM
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
-                        //o_sram_addr_w = o_sram_addr_r + 20'd8;
-                        if (o_sram_addr_r > (END_ADDR - 20'd08)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd7;
-                        end
-                        transmission_en_w = 0;
-                    end
-
-                    x6: begin
-                        //address has been delivered to SRAM
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
-                        //o_sram_addr_w = o_sram_addr_r + 20'd8;
-                        if (o_sram_addr_r > (END_ADDR - 20'd07)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd6;
-                        end
-                        transmission_en_w = 0;
-                    end
-                    
-                    x5: begin
-                        //address has been delivered to SRAM
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
-                        //o_sram_addr_w = o_sram_addr_r + 20'd8;
-                        if (o_sram_addr_r > (END_ADDR - 20'd06)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd5;
-                        end
-                        transmission_en_w = 0;
-                    end
-
-                    x4: begin
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        //o_sram_addr_w = o_sram_addr_r + 20'd4;
-                        if (o_sram_addr_r > (END_ADDR - 20'd05)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd4;
-                        end
-                        transmission_en_w = 0;
-                    end
-
-                    x3: begin
-                        //address has been delivered to SRAM
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player 
-                        //o_sram_addr_w = o_sram_addr_r + 20'd8;
-                        if (o_sram_addr_r > (END_ADDR - 20'd04)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd3;
-                        end
-                        transmission_en_w = 0;
-                    end
-
-                    x2: begin
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        //o_sram_addr_w = o_sram_addr_r + 20'd2;
-                        if (o_sram_addr_r > (END_ADDR - 20'd03)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd2;
-                        end
-                        transmission_en_w = 0;
-                    end
-
-                    x1: begin
-                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
-                        //o_sram_addr_w = o_sram_addr_r + 20'd1;
-                        if (o_sram_addr_r > (END_ADDR - 20'd02)) begin //about to finish playing
-                            o_sram_addr_w = o_sram_addr_r;
-                            state_w = S_IDLE;
-                        end else begin
-                            o_sram_addr_w = o_sram_addr_r + 20'd1;
-                        end
-                        transmission_en_w = 0;
-                    end
-
                     x0_5: begin
                         if (i_slow_0 && !i_slow_1) begin //0 interpolation
                             o_processed_data_w = $signed(i_sram_data);
