@@ -210,7 +210,7 @@ always_comb begin
 		end
 		S_WAIT_I2C: begin
 			if (i2c_finished) begin
-				if (cnt_r >= 9) begin
+				if (cnt_r >= 10) begin
 					state_w = S_IDLE;
 					cnt_w = 0;
 				end else begin

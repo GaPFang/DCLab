@@ -242,17 +242,17 @@ SevenHexDecoder seven_dec0(
 );
 
 SevenHexDecoder seven_dec1(
-	.i_hex(SW[4:1]),
+	.i_hex((SW[3:1] + 4'b01)),
 	.o_seven_ten(HEX1),
 	.o_seven_one(HEX0)
 );
-/*
+
 SevenHexDecoder seven_dec2(
-	.i_hex(0),
-	.o_seven_ten(HEX5),
-	.o_seven_one(HEX4)
+	.i_hex(SW[8:4]),
+	.o_seven_ten(HEX3),
+	.o_seven_one(HEX2)
 );
-*/
+
 
 
 // SevenHexDecoder seven_dec1(
@@ -264,8 +264,8 @@ SevenHexDecoder seven_dec2(
 // comment those are use for display
 //assign HEX0 = '1;
 //assign HEX1 = '1;
-assign HEX2 = '1;
-assign HEX3 = '1;
+//assign HEX2 = '1;
+//assign HEX3 = '1;
 assign HEX4 = '1;
 assign HEX5 = '1;
 //assign HEX6 = '1;
