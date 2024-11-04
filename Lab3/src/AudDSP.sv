@@ -14,12 +14,14 @@ module AudDSP(
 	//input [19:0] i_initial_addr,
 	output [15:0] o_dac_data,
 	output [19:0] o_sram_addr,
-    output o_player_en
+    output o_player_en,
+    input [19:0] i_last_addr
 );
 
 //parameters
 
 //speed definition
+localparam xback =  8'b10000000;
 localparam x8 =     8'b01000000;
 localparam x7 =     8'b00111000;
 localparam x6 =     8'b00110000;
@@ -567,6 +569,19 @@ always@(*) begin
                                 o_processed_data_w = $signed(i_sram_data);
                                 old_data_w = $signed(i_sram_data);
                             end
+                        end
+                        transmission_en_w = 0;
+                    end
+                    xback: begin
+                        o_processed_data_w = $signed(i_sram_data);//data will be segmented in player
+                        //o_sram_addr_w = o_sram_addr_r + 20'd1;
+                        if (o_sram_addr_r == START_ADDR || o_sram_addr_r == (START_ADDR + 20'd1)) // beginning of playing
+                            o_sram_addr_w = i_last_addr;
+                        else if (o_sram_addr_r < (START_ADDR + 20'd02)) begin //about to finish playing
+                            o_sram_addr_w = o_sram_addr_r;
+                            state_w = S_IDLE;
+                        end else begin
+                            o_sram_addr_w = o_sram_addr_r - 20'd1;
                         end
                         transmission_en_w = 0;
                     end

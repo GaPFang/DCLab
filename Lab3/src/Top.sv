@@ -111,6 +111,7 @@ logic [7:0] speed;
 logic slow0, slow1;
 logic [26:0] time_cnt, time_cnt_nxt;
 logic [5:0] small_time_cnt, small_time_cnt_nxt;
+logic [19:0] last_time_r, last_time_w;
 logic [3:0] big_time_cnt, big_time_cnt_nxt;
 
 assign player_start = player_start_r;
@@ -172,7 +173,8 @@ AudDSP dsp0(
 	//.i_initial_addr(initial_addr),
 	.o_dac_data(dac_data),
 	.o_sram_addr(addr_play),
-	.o_player_en(player_en)
+	.o_player_en(player_en),
+	.i_last_addr(last_time_r)
 );
 
 // === AudPlayer ===
@@ -220,6 +222,7 @@ always_comb begin
 	small_time_cnt_nxt = small_time_cnt;
 	time_cnt_nxt = time_cnt;
 	big_time_cnt_nxt = 0;
+	last_time_w = last_time_r;
 	case (state_r)
 		S_START: begin
 			state_w = S_START_I2C;
@@ -260,6 +263,7 @@ always_comb begin
 		end
 		S_RECD: begin
 			recorder_start = 1;
+			last_time_w = addr_record;
 			if (time_cnt >= CYCLES_S) begin
 				if (small_time_cnt < 31) begin
 					small_time_cnt_nxt = small_time_cnt + 1;
@@ -269,8 +273,7 @@ always_comb begin
 					small_time_cnt_nxt = 0;
 					time_cnt_nxt = 27'b0;
 				end
-			end
-			else begin
+			end else begin
 				time_cnt_nxt = time_cnt + 1;
 			end
 			if (i_key_2) begin
@@ -411,6 +414,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		small_time_cnt <= 0;
 		time_cnt <= 27'b0;
 		big_time_cnt <= 0;
+		last_time_r <= 0;
 	end else begin
 		state_r <= state_w;
 		cnt_r <= cnt_w;
@@ -423,6 +427,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		small_time_cnt <= small_time_cnt_nxt;
 		time_cnt <= time_cnt_nxt;
 		big_time_cnt <= big_time_cnt_nxt;
+		last_time_r <= last_time_w;
 	end
 end
 
