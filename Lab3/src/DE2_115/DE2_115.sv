@@ -142,6 +142,7 @@ logic CLK_12M, CLK_100K, CLK_800K;
 logic [3:0] recorder_debug;
 logic [7:0] display_speed0, display_speed1;
 logic [2:0] top_state;
+logic [5:0] times;
 //logic [7:0] speed = {SW[8], SW[7], SW[6], SW[5], SW[4], SW[3], SW[2], SW[1]};
 assign AUD_XCK = CLK_12M;
 
@@ -216,7 +217,8 @@ Top top0(
 	.o_AUD_DACDAT(AUD_DACDAT),
 	.o_SHD_debug(recorder_debug),
 
-	.state(top_state)
+	.state(top_state),
+	.times(times)
 	// SEVENDECODER (optional display)
 	// .o_record_time(recd_time),
 	// .o_play_time(play_time),
@@ -248,26 +250,25 @@ SevenHexDecoder seven_dec1(
 );
 
 SevenHexDecoder seven_dec2(
-	.i_hex(SW[8:4]),
+	.i_hex({1'b0,SW[8:4]}),
 	.o_seven_ten(HEX3),
 	.o_seven_one(HEX2)
 );
 
 
-
-// SevenHexDecoder seven_dec1(
-// 	.i_num(recd_time),
-// 	.o_seven_ten(HEX5),
-//  	.o_seven_one(HEX4)
-// );
+SevenHexDecoder seven_dec3(
+ 	.i_hex(times),
+ 	.o_seven_ten(HEX5),
+  	.o_seven_one(HEX4)
+ );
 
 // comment those are use for display
 //assign HEX0 = '1;
 //assign HEX1 = '1;
 //assign HEX2 = '1;
 //assign HEX3 = '1;
-assign HEX4 = '1;
-assign HEX5 = '1;
+//assign HEX4 = '1;
+//assign HEX5 = '1;
 //assign HEX6 = '1;
 //assign HEX7 = '1;
 

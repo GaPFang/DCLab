@@ -42,6 +42,8 @@ localparam x0_125 = 8'b00000111;
 localparam START_ADDR = 20'b0;
 localparam END_ADDR = 21'b100000000000000000000;
 //
+
+
 //
 
 //state enumeration
@@ -67,6 +69,8 @@ logic [7:0] speed_r, speed_w;
 logic [5:0] cnt, cnt_nxt;
 logic o_player_en_r, o_player_en_w;
 logic [2:0] fall_cnt, fall_cnt_nxt;
+logic [26:0] time_cnt, time_cnt_nxt;
+logic [5:0] small_time_cnt, small_time_cnt_nxt;
 //
 
 //assign

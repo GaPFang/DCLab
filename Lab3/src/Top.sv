@@ -31,7 +31,8 @@ module Top (
 	output signed o_AUD_DACDAT,
 	output [3:0] o_SHD_debug,
 
-	output [2:0] state
+	output [2:0] state,
+	output [5:0] times
 	// SEVENDECODER (optional display)
 	// output [5:0] o_record_time,
 	// output [5:0] o_play_time,
@@ -75,6 +76,24 @@ localparam I_DIGITAL_FORMAT = 4'b0111;
 localparam I_SAMPLE = 4'b1000;
 localparam I_ACTIVE = 4'b1001;
 
+localparam x8 =     8'b01000000;
+localparam x7 =     8'b00111000;
+localparam x6 =     8'b00110000;
+localparam x5 =     8'b00101000;
+localparam x4 =     8'b00100000;
+localparam x3 =     8'b00011000;
+localparam x2 =     8'b00010000;
+localparam x1 =     8'b00001000;
+localparam x0_5 =   8'b00000001;
+localparam x0_33 =  8'b00000010;
+localparam x0_25 =  8'b00000011;
+localparam x0_2 =   8'b00000100;
+localparam x0_17 =  8'b00000101;
+localparam x0_14 =  8'b00000110;
+localparam x0_125 = 8'b00000111;
+
+localparam CYCLES_S = 27'd12000000; 
+
 logic i2c_start, i2c_started, i2c_oen, i2c_sdat, i2c_finished;
 logic [3:0] i2c_type;
 logic [19:0] addr_record, addr_play;
@@ -90,6 +109,9 @@ logic player_stop_r, player_stop_w;
 logic ack_Ply2Dsp;
 logic [7:0] speed;
 logic slow0, slow1;
+logic [26:0] time_cnt, time_cnt_nxt;
+logic [5:0] small_time_cnt, small_time_cnt_nxt;
+logic [3:0] big_time_cnt, big_time_cnt_nxt;
 
 assign player_start = player_start_r;
 assign player_pause = player_pause_r;
@@ -113,6 +135,7 @@ assign o_SRAM_UB_N = 1'b0;
 assign o_SHD_debug = 4'b0000;
 
 assign state = state_r;
+assign times = small_time_cnt;
 // below is a simple example for module division
 // you can design these as you like
 
@@ -194,6 +217,9 @@ always_comb begin
 	speed_w = speed_r;
 	slow0_w = i_slow_0;
 	slow1_w = i_slow_1;
+	small_time_cnt_nxt = small_time_cnt;
+	time_cnt_nxt = time_cnt;
+	big_time_cnt_nxt = 0;
 	case (state_r)
 		S_START: begin
 			state_w = S_START_I2C;
@@ -220,6 +246,9 @@ always_comb begin
 			end
 		end
 		S_IDLE: begin
+			small_time_cnt_nxt = 0;
+			time_cnt_nxt = 27'b0;
+			big_time_cnt_nxt = 0;
 			speed_w = i_speed;
 			if (i_key_0) begin
 				state_w = S_RECD;
@@ -231,6 +260,19 @@ always_comb begin
 		end
 		S_RECD: begin
 			recorder_start = 1;
+			if (time_cnt >= CYCLES_S) begin
+				if (small_time_cnt < 31) begin
+					small_time_cnt_nxt = small_time_cnt + 1;
+					time_cnt_nxt = 27'b0;
+				end
+				else begin
+					small_time_cnt_nxt = 0;
+					time_cnt_nxt = 27'b0;
+				end
+			end
+			else begin
+				time_cnt_nxt = time_cnt + 1;
+			end
 			if (i_key_2) begin
 				state_w = S_RECD_PAUSE;
 				recorder_pause = 1;
@@ -250,6 +292,92 @@ always_comb begin
 			end
 		end
 		S_PLAY: begin
+			if (time_cnt >= CYCLES_S) begin
+				if (small_time_cnt < 31) begin
+					small_time_cnt_nxt = small_time_cnt + 1;
+					time_cnt_nxt = 27'b0;
+				end
+				else begin
+					small_time_cnt_nxt = 0;
+					time_cnt_nxt = 27'b0;
+				end
+			end
+			else begin
+				case(speed_r)
+					x8: time_cnt_nxt = time_cnt + 8;
+					x7: time_cnt_nxt = time_cnt + 7;
+					x6: time_cnt_nxt = time_cnt + 6;
+					x5: time_cnt_nxt = time_cnt + 5;
+					x4: time_cnt_nxt = time_cnt + 4;
+					x3: time_cnt_nxt = time_cnt + 3;
+					x2: time_cnt_nxt = time_cnt + 2;
+					x1: time_cnt_nxt = time_cnt + 1;
+					x0_5: begin
+						if (big_time_cnt < 1) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end
+					x0_33: begin
+						if (big_time_cnt < 2) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end
+					x0_25: begin
+						if (big_time_cnt < 3) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end
+					x0_2: begin
+						if (big_time_cnt < 4) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end
+					x0_17: begin
+						if (big_time_cnt < 5) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end	
+					x0_14: begin
+						if (big_time_cnt < 6) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end
+					x0_125: begin
+						if (big_time_cnt < 7) begin
+							big_time_cnt_nxt = big_time_cnt + 1;
+						end
+						else begin
+							big_time_cnt_nxt = 0;
+							time_cnt_nxt = time_cnt + 1;
+						end
+					end
+				endcase
+				//time_cnt_nxt = time_cnt + 1;
+			end
 			if (i_key_2) begin
 				state_w = S_PLAY_PAUSE;
 				player_pause_w = 1;
@@ -280,6 +408,9 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		speed_r <= 8'b00001000;
 		slow0_r <= 0;
 		slow1_r <= 0;
+		small_time_cnt <= 0;
+		time_cnt <= 27'b0;
+		big_time_cnt <= 0;
 	end else begin
 		state_r <= state_w;
 		cnt_r <= cnt_w;
@@ -289,6 +420,9 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		speed_r <= speed_w;
 		slow0_r <= slow0_w;
 		slow1_r <= slow1_w;
+		small_time_cnt <= small_time_cnt_nxt;
+		time_cnt <= time_cnt_nxt;
+		big_time_cnt <= big_time_cnt_nxt;
 	end
 end
 
