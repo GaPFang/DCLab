@@ -180,9 +180,29 @@ AudDSP dsp0(
 	.i_sram_data(data_play),
 	.i_player_ack(ack_Ply2Dsp),
 	//.i_initial_addr(initial_addr),
-	.o_dac_data(dac_data),
-	.o_sram_addr(addr_play),
-	.o_player_en(player_en),
+	.o_dac_data(dac_data0),
+	.o_sram_addr(addr_play0),
+	.o_player_en(player_en0),
+	.i_last_addr(last_time_r)
+);
+
+AudDSP dsp1(
+	.i_rst_n(i_rst_n),
+	.i_clk(i_clk),
+	.i_start(player_start),
+	.i_pause(player_pause),
+	.i_stop(player_stop),
+	.i_speed(speed),
+	.i_fast(1'b0),
+	.i_slow_0(slow0), // constant interpolation
+	.i_slow_1(slow1), // linear interpolation
+	.i_daclrck(~i_AUD_DACLRCK),
+	.i_sram_data(data_play),
+	.i_player_ack(ack_Ply2Dsp1),
+	//.i_initial_addr(initial_addr),
+	.o_dac_data(dac_data1),
+	.o_sram_addr(addr_play1),
+	.o_player_en(player_en1),
 	.i_last_addr(last_time_r)
 );
 
