@@ -136,19 +136,7 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
-reg [20:0] cnt;
-reg vga_clk;
-assign VGA_CLK = vga_clk;
-
-always @(posedge CLOCK_50 or negedge KEY[1]) begin
-	if(~KEY[1]) begin
-		vga_clk <= 1'b0;
-		cnt <= 0;
-	end else begin
-		vga_clk <= ~vga_clk;
-		cnt <= cnt + 1;
-	end
-end
+assign VGA_CLK = ENETCLK_25;
 
 Debounce deb0(
 	.i_in(KEY[0]),
@@ -178,7 +166,9 @@ vga vga_top(
     .VGA_G(VGA_G),
     .VGA_B(VGA_B),
     .VGA_HS(VGA_HS),
-    .VGA_VS(VGA_VS)
+    .VGA_VS(VGA_VS),
+	.VGA_BLANK_N(VGA_BLANK_N),
+	.VGA_SYNC_N(VGA_SYNC_N)
 );
 
 assign HEX0 = '1;
