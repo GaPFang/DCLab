@@ -14,150 +14,159 @@ def find_number(klotski, number):
             if klotski[i][j] == number:
                 return (i, j)
             
-def check_move(mask, pos, direction, last_pos, number_pos):
+def check_move(mask, pos, direction, last_pos):
     if direction == 0:
         if (last_pos == [pos[0] - 1, pos[1]]):
             return False
         if pos[0] - 1 >= 0 and mask[pos[0] - 1][pos[1]] == 0:
-            if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
-                last_pos[0] = pos[0]
-                last_pos[1] = pos[1]
-            else:
-                last_pos[0] = -1
-                last_pos[1] = -1
             return True
     elif direction == 1:
         if (last_pos == [pos[0] + 1, pos[1]]):
             return False
         if pos[0] + 1 < 4 and mask[pos[0] + 1][pos[1]] == 0:
-            if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
-                last_pos[0] = pos[0]
-                last_pos[1] = pos[1]
-            else:
-                last_pos[0] = -1
-                last_pos[1] = -1
             return True
     elif direction == 2:
         if (last_pos == [pos[0], pos[1] - 1]):
             return False
         if pos[1] - 1 >= 0 and mask[pos[0]][pos[1] - 1] == 0:
-            if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
-                last_pos[0] = pos[0]
-                last_pos[1] = pos[1]
-            else:
-                last_pos[0] = -1
-                last_pos[1] = -1
             return True
     elif direction == 3:
         if (last_pos == [pos[0], pos[1] + 1]): 
             return False
         if pos[1] + 1 < 4 and mask[pos[0]][pos[1] + 1] == 0:
-            if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
-                last_pos[0] = pos[0]
-                last_pos[1] = pos[1]
-            else:
-                last_pos[0] = -1
-                last_pos[1] = -1
             return True
     return False
 
-def move(klotski, pos, direction):
+def move(klotski, pos, direction, last_pos, number_pos):
     if direction == 0:
         klotski[pos[0]][pos[1]] = klotski[pos[0] - 1][pos[1]]
         klotski[pos[0] - 1][pos[1]] = 0
+        if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
+            last_pos[0] = pos[0]
+            last_pos[1] = pos[1]
+        else:
+            last_pos[0] = -1
+            last_pos[1] = -1
+        return True
     elif direction == 1:
         klotski[pos[0]][pos[1]] = klotski[pos[0] + 1][pos[1]]
         klotski[pos[0] + 1][pos[1]] = 0
+        if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
+            last_pos[0] = pos[0]
+            last_pos[1] = pos[1]
+        else:
+            last_pos[0] = -1
+            last_pos[1] = -1
+        return True
     elif direction == 2:
+        if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
+            last_pos[0] = pos[0]
+            last_pos[1] = pos[1]
+        else:
+            last_pos[0] = -1
+            last_pos[1] = -1
         klotski[pos[0]][pos[1]] = klotski[pos[0]][pos[1] - 1]
         klotski[pos[0]][pos[1] - 1] = 0
     elif direction == 3:
+        if (pos[0] == number_pos[0] or pos[1] == number_pos[1]):
+            last_pos[0] = pos[0]
+            last_pos[1] = pos[1]
+        else:
+            last_pos[0] = -1
+            last_pos[1] = -1
         klotski[pos[0]][pos[1]] = klotski[pos[0]][pos[1] + 1]
         klotski[pos[0]][pos[1] + 1] = 0
 
-def move_zero_to_target(klotski, mask, target, last_pos, number_pos):
+def move_zero_to_target(klotski, mask, target, last_pos, number_pos, flag = False):
     zero_pos = find_number(klotski, 0)
-    if zero_pos[0] == target[0]:
-        if zero_pos[1] == target[1]:
+    if (flag):
+        if zero_pos[0] <= target[0] and zero_pos[0] > number_pos[0]:
             return
-        elif zero_pos[1] < target[1]:
-            if check_move(mask, zero_pos, 3, last_pos, number_pos):
-                move(klotski, zero_pos, 3)
-            elif check_move(mask, zero_pos, 0, last_pos, number_pos):
-                move(klotski, zero_pos, 0)
-            elif check_move(mask, zero_pos, 1, last_pos, number_pos):
-                move(klotski, zero_pos, 1)
+        if zero_pos[1] <= target[1] and zero_pos[1] > number_pos[1]:
+            return
+        if zero_pos[0] >= target[0] and zero_pos[0] < number_pos[0]:
+            return
+        if zero_pos[1] >= target[1] and zero_pos[1] < number_pos[1]:
+            return
+    if zero_pos[0] == target[0] and zero_pos[1] == target[1]:
+        return
+    check_up = check_move(mask, zero_pos, 0, last_pos)
+    check_down = check_move(mask, zero_pos, 1, last_pos)
+    check_left = check_move(mask, zero_pos, 2, last_pos)
+    check_right = check_move(mask, zero_pos, 3, last_pos)
+    dir = -1
+    if zero_pos[0] == target[0]:
+        if zero_pos[1] < target[1]:
+            if check_right:
+                dir = 3
+            elif check_up:
+                dir = 0
+            elif check_down:
+                dir = 1
             else:
-                move(klotski, zero_pos, 2)
+                dir = 2
         else:
-            if check_move(mask, zero_pos, 2, last_pos, number_pos):
-                move(klotski, zero_pos, 2)
-            elif check_move(mask, zero_pos, 0, last_pos, number_pos):
-                move(klotski, zero_pos, 0)
-            elif check_move(mask, zero_pos, 1, last_pos, number_pos):
-                move(klotski, zero_pos, 1)
+            if check_left:
+                dir = 2
+            elif check_up:
+                dir = 0
+            elif check_down:
+                dir = 1
             else:
-                move(klotski, zero_pos, 3)
+                dir = 3
     elif zero_pos[0] < target[0]:
-        if zero_pos[1] == target[1]:
-            if check_move(mask, zero_pos, 1, last_pos, number_pos):
-                move(klotski, zero_pos, 1)
-            elif check_move(mask, zero_pos, 2, last_pos, number_pos):
-                move(klotski, zero_pos, 2)
-            elif check_move(mask, zero_pos, 3, last_pos, number_pos):
-                move(klotski, zero_pos, 3)
+        if check_down:
+            dir = 1
+        elif zero_pos[1] == target[1]:
+            if check_left:
+                dir = 2
+            elif check_right:
+                dir = 3
             else:
-                move(klotski, zero_pos, 0)
+                dir = 0
         elif zero_pos[1] < target[1]:
-            if check_move(mask, zero_pos, 3, last_pos, number_pos):
-                move(klotski, zero_pos, 3)
-            elif check_move(mask, zero_pos, 1, last_pos, number_pos):
-                move(klotski, zero_pos, 1)
-            elif check_move(mask, zero_pos, 2, last_pos, number_pos):
-                move(klotski, zero_pos, 2)
+            if check_right:
+                dir = 3
+            elif check_left:
+                dir = 2
             else:
-                move(klotski, zero_pos, 0)
+                dir = 0
         else:
-            if check_move(mask, zero_pos, 2, last_pos, number_pos):
-                move(klotski, zero_pos, 2)
-            elif check_move(mask, zero_pos, 1, last_pos, number_pos):
-                move(klotski, zero_pos, 1)
-            elif check_move(mask, zero_pos, 0, last_pos, number_pos):
-                move(klotski, zero_pos, 0)
+            if check_left:
+                dir = 2
+            elif check_up:
+                dir = 0
             else:
-                move(klotski, zero_pos, 3)
+                dir = 3
     else:
-        if zero_pos[1] == target[1]:
-            if check_move(mask, zero_pos, 0, last_pos, number_pos):
-                move(klotski, zero_pos, 0)
-            elif check_move(mask, zero_pos, 3, last_pos, number_pos):
-                move(klotski, zero_pos, 3)
-            elif check_move(mask, zero_pos, 2, last_pos, number_pos):
-                move(klotski, zero_pos, 2)
+        if check_up:
+            dir = 0
+        elif zero_pos[1] == target[1]:
+            if check_right:
+                dir = 3
+            elif check_left:
+                dir = 2
             else:
-                move(klotski, zero_pos, 1)
+                dir = 1
         elif zero_pos[1] < target[1]:
-            if check_move(mask, zero_pos, 0, last_pos, number_pos):
-                move(klotski, zero_pos, 0)
-            elif check_move(mask, zero_pos, 3, last_pos, number_pos):
-                move(klotski, zero_pos, 3)
-            elif check_move(mask, zero_pos, 1, last_pos, number_pos):
-                move(klotski, zero_pos, 1)
+            if check_right:
+                dir = 3
+            elif check_down:
+                dir = 1
             else:
-                move(klotski, zero_pos, 2)
+                dir = 2
         else:
-            if check_move(mask, zero_pos, 2, last_pos, number_pos):
-                move(klotski, zero_pos, 2)
-            elif check_move(mask, zero_pos, 0, last_pos, number_pos):
-                move(klotski, zero_pos, 0)
-            elif check_move(mask, zero_pos, 3, last_pos, number_pos):
-                move(klotski, zero_pos, 3)
+            if check_left:
+                dir = 2
+            elif check_right:
+                dir = 3
             else:
-                move(klotski, zero_pos, 1)
+                dir = 1
+    move(klotski, zero_pos, dir, last_pos, number_pos)
     matrices.append(klotski.copy())
     # print(klotski)
     # print()
-    move_zero_to_target(klotski, mask, target, last_pos, number_pos)
+    move_zero_to_target(klotski, mask, target, last_pos, number_pos, flag)
 
 def move_number_to_target(klotski, mask, target, number, last_pos):
     while True:
@@ -165,7 +174,7 @@ def move_number_to_target(klotski, mask, target, number, last_pos):
         if (target == number_pos):
             break
         mask[number_pos[0]][number_pos[1]] = 1
-        move_zero_to_target(klotski, mask, target, last_pos, number_pos)
+        move_zero_to_target(klotski, mask, target, last_pos, number_pos, True)
         mask[number_pos[0]][number_pos[1]] = 0
         move_zero_to_target(klotski, mask, number_pos, last_pos, number_pos)
     mask[target[0]][target[1]] = 1
