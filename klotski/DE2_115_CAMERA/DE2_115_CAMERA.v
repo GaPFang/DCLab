@@ -232,7 +232,10 @@ module DE2_115_CAMERA(
 	D5M_SDATA,
 	D5M_STROBE,
 	D5M_TRIGGER,
-	D5M_XCLKIN 
+	D5M_XCLKIN, 
+
+	MOTOR_STEP,
+	MOTOR_DIR
 );
 
 //=======================================================
@@ -430,6 +433,8 @@ inout		          		D5M_SDATA;
 input		          		D5M_STROBE;
 output		          		D5M_TRIGGER;
 output		          		D5M_XCLKIN;
+output						MOTOR_STEP;
+output						MOTOR_DIR;
 
 
 //=======================================================
@@ -466,7 +471,10 @@ wire	[9:0]	oVGA_B;   				//	VGA Blue[9:0]
 wire    [12:0]  H_Cont;
 wire    [12:0]  V_Cont;
 wire    [23:0]  RGB_avg;
-wire            key2down;		
+wire            key2down;
+
+wire    		step_control;
+wire			direction;
 
 //power on start
 wire             auto_start;
@@ -486,6 +494,10 @@ assign	UART_TXD = UART_RXD;
 assign  VGA_R = oVGA_R[9:2];
 assign  VGA_G = oVGA_G[9:2];
 assign  VGA_B = oVGA_B[9:2];
+
+//Motor
+assign	MOTOR_STEP = step_control;
+assign	MOTOR_DIR = direction;
 
 //D5M read 
 always@(posedge D5M_PIXLCLK)
@@ -707,6 +719,17 @@ Read_VGA 		read_vga (
     						.o_block16_avg(),
     						.o_done()
 
+);
+
+Motor_Control motor_control1(
+    .i_Clk(CLOCK_50),
+    .i_rst_n(DLY_RST_2),
+    .i_en(1),
+    .i_direction(1),
+    .i_total_steps(32'd010000),
+    .o_step_control(step_control),
+    .o_direction(direction),
+    .o_done()
 );
 
 endmodule
