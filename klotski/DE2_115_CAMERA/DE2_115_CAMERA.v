@@ -234,8 +234,12 @@ module DE2_115_CAMERA(
 	D5M_TRIGGER,
 	D5M_XCLKIN, 
 
-	MOTOR_STEP,
-	MOTOR_DIR
+	MOTOR_STEPX1,
+	MOTOR_DIRX1,
+	MOTOR_STEPX2,
+	MOTOR_DIRX2,
+	MOTOR_STEPY1,
+	MOTOR_DIRY1
 );
 
 //=======================================================
@@ -433,8 +437,12 @@ inout		          		D5M_SDATA;
 input		          		D5M_STROBE;
 output		          		D5M_TRIGGER;
 output		          		D5M_XCLKIN;
-output						MOTOR_STEP;
-output						MOTOR_DIR;
+output						MOTOR_STEPX1;
+output						MOTOR_DIRX1;
+output						MOTOR_STEPX2;
+output						MOTOR_DIRX2;
+output						MOTOR_STEPY1;
+output						MOTOR_DIRY1;
 
 
 //=======================================================
@@ -473,8 +481,12 @@ wire    [12:0]  V_Cont;
 wire    [23:0]  RGB_avg;
 wire            key2down;
 
-wire    		step_control;
-wire			direction;
+wire    		step_control_x1;
+wire			direction_x1;
+wire    		step_control_x2;
+wire			direction_x2;
+wire    		step_control_y1;
+wire			direction_y1;
 
 //power on start
 wire             auto_start;
@@ -496,8 +508,12 @@ assign  VGA_G = oVGA_G[9:2];
 assign  VGA_B = oVGA_B[9:2];
 
 //Motor
-assign	MOTOR_STEP = step_control;
-assign	MOTOR_DIR = direction;
+assign	MOTOR_STEPX1 = step_control_x1;
+assign	MOTOR_DIRX1 = direction_x1;
+assign	MOTOR_STEPX2 = step_control_x2;
+assign	MOTOR_DIRX2 = direction_x2;
+assign	MOTOR_STEPY1 = step_control_y1;
+assign	MOTOR_DIRY1 = direction_y1;
 
 //D5M read 
 always@(posedge D5M_PIXLCLK)
@@ -727,8 +743,19 @@ Motor_Control motor_control1(
     .i_en(1),
     .i_direction(1),
     .i_total_steps(32'd010000),
-    .o_step_control(step_control),
-    .o_direction(direction),
+    .o_step_control(step_control_x1),
+    .o_direction(direction_x1),
+    .o_done()
+);
+
+Motor_Control motor_control2(
+    .i_Clk(CLOCK_50),
+    .i_rst_n(DLY_RST_2),
+    .i_en(1),
+    .i_direction(1),
+    .i_total_steps(32'd010000),
+    .o_step_control(step_control_x2),
+    .o_direction(direction_x2),
     .o_done()
 );
 

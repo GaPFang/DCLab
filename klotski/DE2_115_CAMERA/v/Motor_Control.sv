@@ -10,8 +10,8 @@ module Motor_Control (
 );
 
 //PWM param
-localparam TOTAL_CYCLE = 10000;
-localparam HIGH_CYCLE = 5000;
+localparam TOTAL_CYCLE = 20000;//20000
+localparam HIGH_CYCLE = 10000;//10000
 localparam LOW_CYCLE = TOTAL_CYCLE - HIGH_CYCLE;
 //
 

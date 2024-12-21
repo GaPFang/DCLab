@@ -988,10 +988,18 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to D5M_SDATA
 set_location_assignment PIN_AH25 -to D5M_SCLK
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to D5M_SCLK
 
-set_location_assignment PIN_AF20 -to MOTOR_STEP
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_STEP
-set_location_assignment PIN_AH23 -to MOTOR_DIR
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_DIR
+set_location_assignment PIN_AF20 -to MOTOR_STEPX1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_STEPX1
+set_location_assignment PIN_AH23 -to MOTOR_DIRX1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_DIRX1
+set_location_assignment PIN_AH22 -to MOTOR_STEPX2
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_STEPX2
+set_location_assignment PIN_AE20 -to MOTOR_DIRX2
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_DIRX2
+set_location_assignment PIN_AH26 -to MOTOR_STEPY1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_STEPY1
+set_location_assignment PIN_AG26 -to MOTOR_DIRY1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to MOTOR_DIRY1
 
 #============================================================
 # End of pin assignments by Terasic System Builder
