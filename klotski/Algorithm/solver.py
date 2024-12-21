@@ -95,7 +95,55 @@ def move_zero_to_target(klotski, mask, target, last_pos, number_pos, flag = Fals
     check_left = check_move(mask, zero_pos, 2, last_pos)
     check_right = check_move(mask, zero_pos, 3, last_pos)
     dir = -1
-    if zero_pos[0] == target[0]:
+    if zero_pos[0] < target[0]:
+        if check_down:
+            dir = 1
+        elif zero_pos[1] < target[1]:
+            if check_right:
+                dir = 3
+            elif check_left:
+                dir = 2
+            else:
+                dir = 0
+        elif zero_pos[1] > target[1]:
+            if check_left:
+                dir = 2
+            elif check_up:
+                dir = 0
+            else:
+                dir = 3
+        else:
+            if check_left:
+                dir = 2
+            elif check_right:
+                dir = 3
+            else:
+                dir = 0
+    elif zero_pos[0] > target[0]:
+        if check_up:
+            dir = 0
+        elif zero_pos[1] < target[1]:
+            if check_right:
+                dir = 3
+            elif check_down:
+                dir = 1
+            else:
+                dir = 2
+        elif zero_pos[1] > target[1]:
+            if check_left:
+                dir = 2
+            elif check_right:
+                dir = 3
+            else:
+                dir = 1
+        else:
+            if check_right:
+                dir = 3
+            elif check_left:
+                dir = 2
+            else:
+                dir = 1
+    else:
         if zero_pos[1] < target[1]:
             if check_right:
                 dir = 3
@@ -114,54 +162,6 @@ def move_zero_to_target(klotski, mask, target, last_pos, number_pos, flag = Fals
                 dir = 1
             else:
                 dir = 3
-    elif zero_pos[0] < target[0]:
-        if check_down:
-            dir = 1
-        elif zero_pos[1] == target[1]:
-            if check_left:
-                dir = 2
-            elif check_right:
-                dir = 3
-            else:
-                dir = 0
-        elif zero_pos[1] < target[1]:
-            if check_right:
-                dir = 3
-            elif check_left:
-                dir = 2
-            else:
-                dir = 0
-        else:
-            if check_left:
-                dir = 2
-            elif check_up:
-                dir = 0
-            else:
-                dir = 3
-    else:
-        if check_up:
-            dir = 0
-        elif zero_pos[1] == target[1]:
-            if check_right:
-                dir = 3
-            elif check_left:
-                dir = 2
-            else:
-                dir = 1
-        elif zero_pos[1] < target[1]:
-            if check_right:
-                dir = 3
-            elif check_down:
-                dir = 1
-            else:
-                dir = 2
-        else:
-            if check_left:
-                dir = 2
-            elif check_right:
-                dir = 3
-            else:
-                dir = 1
     move(klotski, zero_pos, dir, last_pos, number_pos)
     matrices.append(klotski.copy())
     # print(klotski)
@@ -221,14 +221,15 @@ def solve(klotski):
 
 
 def main():
-    # klotski = np.array([[10,  2,  6, 11],
-    #                     [15,  3, 14,  8],
-    #                     [ 1,  7,  0,  4],
-    #                     [ 9,  5, 12, 13]])
+    klotski = np.array([[10,  1, 14, 12],
+                        [ 6,  0,  9, 15],
+                        [ 3,  7,  5,  4],
+                        [13, 11,  8,  2]])
     # generate a random klotski
-    klotski = np.random.permutation(16).reshape(4, 4)
+    # klotski = np.random.permutation(16).reshape(4, 4)
     print(klotski)
     solve(klotski)
+    print(klotski)
     # write_gif(matrices)
 
 if __name__ == "__main__":
