@@ -2,10 +2,11 @@ module MoveZero (
     input i_clk,
     input i_rst_n,
     input i_start,
-    input i_flag,
     input [3:0][3:0][3:0] i_klotski,
     input [3:0][3:0] i_mask,
     input [1:0][1:0] i_target,
+    input i_flag,
+    input [3:0] i_num_pos,
     
     output [3:0][3:0][3:0] o_klotski,
     output o_finished
@@ -32,10 +33,10 @@ module MoveZero (
     logic [0:3][0:3][3:0] klotski_r, klotski_w;
     logic [0:3][0:3] mask_r, mask_w;
     logic [0:1][1:0] target_r, target_w;
+    logic [0:1][1:0] num_pos_r, num_pos_w;
     state_t state_r, state_w;
     logic o_finished_r, o_finished_w;
     logic [0:1][1:0] zero_pos_r, zero_pos_w;
-    logic [0:1][1:0] num_pos_r, num_pos_w;
     logic [0:1][1:0] last_pos_r, last_pos_w;
     logic [0:1] check_last_pos_r, check_last_pos_w;
     dir_t dir_r, dir_w;
@@ -116,6 +117,7 @@ module MoveZero (
         klotski_w = klotski_r;
         mask_w = mask_r;
         flag_w = flag_r;
+        num_pos_w = num_pos_r;
         state_w = state_r;
         o_finished_w = 0;
         dir_w = dir_r;
@@ -129,18 +131,19 @@ module MoveZero (
                     state_w = S_CHECK_FINISH;
                     klotski_w = i_klotski;
                     mask_w = i_mask;
-                    flag_w = i_flag;
                     zero_pos_w = findNumber(0);
                     target_w = i_target;
+                    flag_w = i_flag;
+                    num_pos_w = i_num_pos;
                 end
             end
             S_CHECK_FINISH: begin
                 state_w = S_DIR;
                 if (flag_r) begin
-                    if (zero_pos_r[0] <= target_r[0] & zero_pos_r[0] > target_r[0]) state_w = S_FINISH;
-                    if (zero_pos_r[1] <= target_r[1] & zero_pos_r[1] > target_r[1]) state_w = S_FINISH;
-                    if (zero_pos_r[0] >= target_r[0] & zero_pos_r[0] < target_r[0]) state_w = S_FINISH;
-                    if (zero_pos_r[1] >= target_r[1] & zero_pos_r[1] < target_r[1]) state_w = S_FINISH;
+                    if (zero_pos_r[0] <= target_r[0] & zero_pos_r[0] > num_pos_r[0]) state_w = S_FINISH;
+                    if (zero_pos_r[1] <= target_r[1] & zero_pos_r[1] > num_pos_r[1]) state_w = S_FINISH;
+                    if (zero_pos_r[0] >= target_r[0] & zero_pos_r[0] < num_pos_r[0]) state_w = S_FINISH;
+                    if (zero_pos_r[1] >= target_r[1] & zero_pos_r[1] < num_pos_r[1]) state_w = S_FINISH;
                 end
                 if (zero_pos_r[0] == target_r[0] & zero_pos_r[1] == target_r[1]) state_w = S_FINISH;
                 for (i = 0; i < 4; i += 1) begin
@@ -245,10 +248,10 @@ module MoveZero (
             target_r <= 0;
             o_finished_r <= 0;
             zero_pos_r <= 0;
-            num_pos_r <= 0;
             last_pos_r <= 0;
             check_last_pos_r <= 0;
             dir_r <= 0;
+            num_pos_r <= 0;
         end else begin
             state_r <= state_w;
             flag_r <= flag_w;
@@ -257,10 +260,10 @@ module MoveZero (
             target_r <= target_w;
             o_finished_r <= o_finished_w;
             zero_pos_r <= zero_pos_w;
-            num_pos_r <= num_pos_w;
             last_pos_r <= last_pos_w;
             check_last_pos_r <= check_last_pos_w;
             dir_r <= dir_w;
+            num_pos_r <= num_pos_w;
         end
     end
 

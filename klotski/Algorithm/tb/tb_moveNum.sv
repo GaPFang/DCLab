@@ -1,28 +1,29 @@
 `timescale 1ns/1ps
 
-module tb_moveZero();
+module tb_moveNum();
 
     reg [3:0][3:0][3:0] klotski;
     reg [1:0][1:0] target;
     reg [3:0][3:0] mask;
+    reg [3:0] number;
     reg clk;
     reg rst_n;
     reg start;
 
     wire [3:0][3:0][3:0] o_klotski;
     wire finished;
-    parameter MAX_CYCLES = 100;
+    parameter MAX_CYCLES = 1000;
 
-    MoveZero uut (
+    MoveNum uut (
         .i_clk(clk),
         .i_rst_n(rst_n),
         .i_start(start),
-        .i_flag(1'b0),
         .i_klotski(klotski),
         .i_mask(mask),
         .i_target(target),
-        .i_num_pos(0),
+        .i_number(number),
         .o_klotski(o_klotski),
+        .o_mask(),
         .o_finished(finished)
     );
 
@@ -44,7 +45,7 @@ module tb_moveZero();
     // endtask
 
     initial begin
-        $dumpfile("moveZero.vcd");
+        $dumpfile("moveNum.vcd");
         $dumpvars();
     end
 
@@ -74,9 +75,11 @@ module tb_moveZero();
         target = {2'd0, 2'd0};
         
         mask = {{1'b0, 1'b0, 1'b0, 1'b0},
-                {1'b0, 1'b1, 1'b0, 1'b0},
-                {1'b1, 1'b0, 1'b0, 1'b0},
+                {1'b0, 1'b0, 1'b0, 1'b0},
+                {1'b0, 1'b0, 1'b0, 1'b0},
                 {1'b0, 1'b0, 1'b0, 1'b0}};
+        
+        number = 13;
 
         start = 1;
         #10 start = 0;
