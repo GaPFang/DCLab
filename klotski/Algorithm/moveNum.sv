@@ -6,6 +6,7 @@ module MoveNum (
     input [3:0][3:0] i_mask,
     input [1:0][1:0] i_target,
     input [3:0] i_number,
+    input i_flag,
     
     output [3:0][3:0][3:0] o_klotski,
     output [3:0][3:0] o_mask,
@@ -22,6 +23,7 @@ module MoveNum (
 
     integer i, j;
 
+    logic moveZero_flag_r, moveZero_flag_w;
     logic flag_r, flag_w;
     logic [0:3][0:3][3:0] klotski_r, klotski_w;
     logic [0:3][0:3] mask_r, mask_w;
@@ -58,7 +60,7 @@ module MoveNum (
         .i_klotski(klotski_r),
         .i_mask(mask_r),
         .i_target(moveZero_target_r),
-        .i_flag(flag_r),
+        .i_flag(moveZero_flag_r),
         .i_num_pos(num_pos_r),
         
         .o_klotski(o_moveZero_klotski),
@@ -72,7 +74,8 @@ module MoveNum (
     always_comb begin
         klotski_w = klotski_r;
         mask_w = mask_r;
-        flag_w = 0;
+        moveZero_flag_w = 0;
+        flag_w = flag_r;
         state_w = state_r;
         o_finished_w = 0;
         num_pos_w = num_pos_r;
@@ -87,15 +90,26 @@ module MoveNum (
                     mask_w = i_mask;
                     number_w = i_number;
                     target_w = i_target;
+                    flag_w = ~i_flag;
                 end
             end
             S_FIND: begin
                 state_w = S_ZERO_1;
                 num_pos_w = findNumber(number_r);
                 if (target_r == num_pos_w) begin
-                    o_finished_w = 1;
-                    state_w = S_IDLE;
-                    mask_w[num_pos_w[0]][num_pos_w[1]] = 1'b1;
+                    if (number_r == 11) begin
+                        state_w = S_WAIT;
+                        number_w = 0;
+                        start_w = 1;
+                        moveZero_target_w = 15;
+                        target_w = 15;
+                    end else begin
+                        o_finished_w = 1;
+                        state_w = S_IDLE;
+                        if (flag_r) begin
+                            mask_w[num_pos_w[0]][num_pos_w[1]] = 1'b1;
+                        end
+                    end
                 end
                 // for (i = 0; i < 4; i += 1) begin
                 //     $display("%0h", klotski_r[i]);
@@ -105,23 +119,23 @@ module MoveNum (
             S_ZERO_1: begin
                 state_w = S_ZERO_2;
                 start_w = 1;
-                flag_w = 1;
+                moveZero_flag_w = 1;
                 mask_w[num_pos_r[0]][num_pos_r[1]] = 1'b1;
                 moveZero_target_w = target_r;
             end
             S_ZERO_2: begin
-                klotski_w = o_moveZero_klotski;
                 if (o_moveZero_finished) begin
                     state_w = S_WAIT;
+                    klotski_w = o_moveZero_klotski;
                     start_w = 1;
                     mask_w[num_pos_r[0]][num_pos_r[1]] = 1'b0;
                     moveZero_target_w = num_pos_r;
                 end
             end
             S_WAIT: begin
-                klotski_w = o_moveZero_klotski;
                 if (o_moveZero_finished) begin
                     state_w = S_FIND;
+                    klotski_w = o_moveZero_klotski;
                 end
             end
         endcase
@@ -130,6 +144,7 @@ module MoveNum (
     always_ff @(posedge i_clk or negedge i_rst_n) begin
         if (!i_rst_n) begin
             state_r <= S_IDLE;
+            moveZero_flag_r <= 0;
             flag_r <= 0;
             klotski_r <= 0;
             mask_r <= 0;
@@ -140,6 +155,7 @@ module MoveNum (
             moveZero_target_r <= 0;
         end else begin
             state_r <= state_w;
+            moveZero_flag_r <= moveZero_flag_w;
             flag_r <= flag_w;
             klotski_r <= klotski_w;
             mask_r <= mask_w;
