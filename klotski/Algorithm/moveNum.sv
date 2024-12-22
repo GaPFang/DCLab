@@ -2,12 +2,16 @@ module MoveNum (
     input i_clk,
     input i_rst_n,
     input i_start,
+    input i_continue,
     input [3:0][3:0][3:0] i_klotski,
     input [3:0][3:0] i_mask,
     input [1:0][1:0] i_target,
     input [3:0] i_number,
     input i_flag,
     
+    output logic [3:0] o_start_block,
+    output logic [3:0] o_end_block,
+    output logic o_en,
     output [3:0][3:0][3:0] o_klotski,
     output [3:0][3:0] o_mask,
     output o_finished
@@ -57,12 +61,16 @@ module MoveNum (
         .i_clk(i_clk),
         .i_rst_n(i_rst_n),
         .i_start(start_r),
+        .i_continue(i_continue),
         .i_klotski(klotski_r),
         .i_mask(mask_r),
         .i_target(moveZero_target_r),
         .i_flag(moveZero_flag_r),
         .i_num_pos(num_pos_r),
         
+        .o_start_block(o_start_block),
+        .o_end_block(o_end_block),
+        .o_en(o_en),
         .o_klotski(o_moveZero_klotski),
         .o_finished(o_moveZero_finished)
     );
@@ -79,9 +87,10 @@ module MoveNum (
         state_w = state_r;
         o_finished_w = 0;
         num_pos_w = num_pos_r;
-        number_r = number_w;
         start_w = 0;
         moveZero_target_w = 0;
+        target_w = target_r;
+        number_w = number_r;
         case (state_r)
             S_IDLE: begin
                 if (i_start) begin
@@ -153,6 +162,7 @@ module MoveNum (
             num_pos_r <= 0;
             start_r <= 0;
             moveZero_target_r <= 0;
+            number_r <= 0;
         end else begin
             state_r <= state_w;
             moveZero_flag_r <= moveZero_flag_w;
@@ -164,6 +174,7 @@ module MoveNum (
             num_pos_r <= num_pos_w;
             start_r <= start_w;
             moveZero_target_r <= moveZero_target_w;
+            number_r <= number_w;
         end
     end
 

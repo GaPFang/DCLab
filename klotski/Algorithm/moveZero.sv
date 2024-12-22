@@ -2,20 +2,25 @@ module MoveZero (
     input i_clk,
     input i_rst_n,
     input i_start,
+    input i_continue,
     input [3:0][3:0][3:0] i_klotski,
     input [3:0][3:0] i_mask,
     input [1:0][1:0] i_target,
     input i_flag,
     input [3:0] i_num_pos,
     
+    output [3:0] o_start_block,
+    output [3:0] o_end_block,
+    output o_en,
     output [3:0][3:0][3:0] o_klotski,
     output o_finished
 );
 
-    typedef enum logic [2:0] { 
+    typedef enum logic [2:0] {
         S_IDLE,
         S_CHECK_FINISH,
         S_DIR,
+        S_WAIT_MOTOR,
         S_MOVE,
         S_FINISH
     } state_t;
@@ -34,11 +39,13 @@ module MoveZero (
     logic [0:3][0:3] mask_r, mask_w;
     logic [0:1][1:0] target_r, target_w;
     logic [0:1][1:0] num_pos_r, num_pos_w;
+    logic [3:0] start_block;
     state_t state_r, state_w;
     logic o_finished_r, o_finished_w;
     logic [0:1][1:0] zero_pos_r, zero_pos_w;
     logic [0:1][1:0] last_pos_r, last_pos_w;
     logic check_last_pos_r, check_last_pos_w;
+    logic o_en_r, o_en_w;
     dir_t dir_r, dir_w;
     logic check_up;
     logic check_down;
@@ -72,6 +79,17 @@ module MoveZero (
             if (check_last_pos_r) begin
                 if (new_pos == last_pos_r) checkMove = 0;
             end
+        end
+    endfunction
+
+    function [0:1][1:0] nextBlock;
+        begin
+            case (dir_r)
+                UP: nextBlock = zero_pos_r - 4'b100;
+                DOWN: nextBlock = zero_pos_r + 4'b100;
+                LEFT: nextBlock = zero_pos_r - 4'b1;
+                RIGHT: nextBlock = zero_pos_r + 4'b1;
+            endcase
         end
     endfunction
 
@@ -113,6 +131,9 @@ module MoveZero (
 
     assign o_klotski = klotski_r;
     assign o_finished = o_finished_r;
+    assign o_start_block = start_block;
+    assign o_end_block = zero_pos_r;
+    assign o_en = o_en_r;
 
     always_comb begin
         klotski_w = klotski_r;
@@ -121,12 +142,17 @@ module MoveZero (
         num_pos_w = num_pos_r;
         state_w = state_r;
         o_finished_w = 0;
+        o_en_w = 0;
         dir_w = dir_r;
         check_up = checkMove(UP);
         check_down = checkMove(DOWN);
         check_left = checkMove(LEFT);
         check_right = checkMove(RIGHT);
+        start_block = nextBlock();
         check_last_pos_w = check_last_pos_r;
+        target_w = target_r;
+        last_pos_w = last_pos_r;
+        zero_pos_w = zero_pos_r;
         case (state_r)
             S_IDLE: begin
                 if (i_start) begin
@@ -148,14 +174,15 @@ module MoveZero (
                     if ((zero_pos_r[1] >= target_r[1] & zero_pos_r[1] < num_pos_r[1]) & ((zero_pos_r[0] >= target_r[0] & zero_pos_r[0] <= num_pos_r[0]) | (zero_pos_r[0] <= target_r[0] & zero_pos_r[0] >= num_pos_r[0]))) state_w = S_FINISH;
                 end
                 if (zero_pos_r[0] == target_r[0] & zero_pos_r[1] == target_r[1]) state_w = S_FINISH;
-                for (i = 0; i < 4; i += 1) begin
-                    $display("%0h%0h%0h%0h %0b%0b%0b%0b", klotski_r[i][0], klotski_r[i][1], klotski_r[i][2], klotski_r[i][3], mask_r[i][0], mask_r[i][1], mask_r[i][2], mask_r[i][3]);
-                end
-                $display("%0b", check_last_pos_r);
-                $display();
+                // for (i = 0; i < 4; i += 1) begin
+                //     $display("%0h%0h%0h%0h %0b%0b%0b%0b", klotski_r[i][0], klotski_r[i][1], klotski_r[i][2], klotski_r[i][3], mask_r[i][0], mask_r[i][1], mask_r[i][2], mask_r[i][3]);
+                // end
+                // $display("%0b", check_last_pos_r);
+                // $display();
             end
             S_DIR: begin
-                state_w = S_MOVE;
+                state_w = S_WAIT_MOTOR;
+                o_en_w = 1;
                 case (1)
                     (zero_pos_r[0] < target_r[0]): begin
                         case (1)
@@ -231,6 +258,11 @@ module MoveZero (
                     end
                 endcase
             end
+            S_WAIT_MOTOR: begin
+                if (i_continue) begin
+                    state_w = S_MOVE;
+                end
+            end
             S_MOVE: begin
                 state_w = S_CHECK_FINISH;
                 move();
@@ -255,6 +287,7 @@ module MoveZero (
             check_last_pos_r <= 0;
             dir_r <= 0;
             num_pos_r <= 0;
+            o_en_r <= 0;
         end else begin
             state_r <= state_w;
             flag_r <= flag_w;
@@ -267,6 +300,7 @@ module MoveZero (
             check_last_pos_r <= check_last_pos_w;
             dir_r <= dir_w;
             num_pos_r <= num_pos_w;
+            o_en_r <= o_en_w; 
         end
     end
 

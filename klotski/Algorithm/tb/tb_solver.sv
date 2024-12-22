@@ -18,6 +18,7 @@ module tb_solver();
         .i_clk(clk),
         .i_rst_n(rst_n),
         .i_start(start),
+        .i_continue(1),
         .i_klotski(klotski),
         .o_finished(finished)
     );

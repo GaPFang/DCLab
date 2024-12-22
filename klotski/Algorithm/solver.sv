@@ -2,8 +2,12 @@ module Solver (
     input i_clk,
     input i_rst_n,
     input i_start,
+    input i_continue,
     input [3:0][3:0][3:0] i_klotski,
 
+    output logic [3:0] o_start_block,
+    output logic [3:0] o_end_block,
+    output logic o_en,
     output o_finished
 );
 
@@ -34,8 +38,6 @@ module Solver (
         S4_4,
         S4_5,
         S5,
-        S6,
-        S7,
         S_FINISH
     } state_t;
 
@@ -59,12 +61,16 @@ module Solver (
         .i_clk(i_clk),
         .i_rst_n(i_rst_n),
         .i_start(start_r),
+        .i_continue(i_continue),
         .i_klotski(klotski_r),
         .i_mask(mask_r),
         .i_number(number_r),
         .i_target(target_r),
         .i_flag(flag_r),
         
+        .o_start_block(o_start_block),
+        .o_end_block(o_end_block),
+        .o_en(o_en),
         .o_klotski(o_moveNum_klotski),
         .o_mask(o_moveNum_mask),
         .o_finished(o_moveNum_finished)
@@ -75,9 +81,10 @@ module Solver (
         mask_w = mask_r;
         state_w = state_r;
         o_finished_w = 0;
-        number_r = number_w;
+        number_w = number_r;
         start_w = 0;
         flag_w = 0;
+        target_w = target_r;
         case (state_r)
             S_IDLE: begin
                 if (i_start) begin
@@ -375,6 +382,7 @@ module Solver (
             o_finished_r <= 0;
             start_r <= 0;
             flag_r <= 0;
+            number_r <= 0;
         end else begin
             state_r <= state_w;
             klotski_r <= klotski_w;
@@ -383,6 +391,7 @@ module Solver (
             o_finished_r <= o_finished_w;
             start_r <= start_w;
             flag_r <= flag_w;
+            number_r <= number_w;
         end
     end
 
