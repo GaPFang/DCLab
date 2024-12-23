@@ -26,7 +26,7 @@ module tb_RGB_sort;
   localparam [23:0] ELEVEN = 24'h00ff00;
   localparam [23:0] TWELVE = 24'h007fff;
   localparam [23:0] THIRTEEN = 24'h007f00;
-  localparam [23:0] FOURTEEN = 24'h0000ff;
+  localparam [23:0] FOURTEEN = 24'h00007f;
   localparam [23:0] FIFTEEN = 24'h000000;
   localparam [23:0] testcase [15:0] = '{NINE, FIVE, THREE, SEVEN, ONE, FIFTEEN, ELEVEN, THIRTEEN, TWO, SIX, FOUR, EIGHT, ZERO, FOURTEEN, TEN, TWELVE};
   localparam [63:0] golden_result = {{4'd9, 4'd5, 4'd3, 4'd7, 4'd1, 4'd15, 4'd11, 4'd13, 4'd2, 4'd6, 4'd4, 4'd8, 4'd0, 4'd14, 4'd10, 4'd12}};
