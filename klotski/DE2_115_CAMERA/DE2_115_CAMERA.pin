@@ -226,7 +226,7 @@ D5M_D[6]                     : AE16      : input  : 3.3-V LVTTL       :         
 HEX7[1]                      : AE17      : output : 3.3-V LVTTL       :         : 4         : Y              
 HEX4[6]                      : AE18      : output : 3.3-V LVTTL       :         : 4         : Y              
 HEX4[4]                      : AE19      : output : 3.3-V LVTTL       :         : 4         : Y              
-MOTOR_DIRX2                  : AE20      : output : 3.3-V LVTTL       :         : 4         : Y              
+MOTOR_DIRY                   : AE20      : output : 3.3-V LVTTL       :         : 4         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE21      :        :                   :         : 4         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AE22      :        :                   :         : 4         :                
 SMA_CLKOUT                   : AE23      : output : 3.3-V LVTTL       :         : 4         : Y              
@@ -254,7 +254,7 @@ D5M_D[2]                     : AF16      : input  : 3.3-V LVTTL       :         
 HEX7[4]                      : AF17      : output : 3.3-V LVTTL       :         : 4         : Y              
 HEX5[5]                      : AF18      : output : 3.3-V LVTTL       :         : 4         : Y              
 HEX4[5]                      : AF19      : output : 3.3-V LVTTL       :         : 4         : Y              
-MOTOR_STEPX1                 : AF20      : output : 3.3-V LVTTL       :         : 4         : Y              
+MOTOR_STEPX                  : AF20      : output : 3.3-V LVTTL       :         : 4         : Y              
 D5M_TRIGGER                  : AF21      : output : 3.3-V LVTTL       :         : 4         : Y              
 D5M_STROBE                   : AF22      : input  : 3.3-V LVTTL       :         : 4         : Y              
 HEX3[5]                      : AF23      : output : 3.3-V LVTTL       :         : 4         : Y              
@@ -288,7 +288,7 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : AG22      :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : AG23      :        :                   :         : 4         :                
 GND                          : AG24      : gnd    :                   :         :           :                
 D5M_FVAL                     : AG25      : input  : 3.3-V LVTTL       :         : 4         : Y              
-MOTOR_DIRY1                  : AG26      : output : 3.3-V LVTTL       :         : 4         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : AG26      :        :                   :         : 4         :                
 GND                          : AG27      : gnd    :                   :         :           :                
 VCCIO5                       : AG28      : power  :                   : 3.3V    : 5         :                
 VCCIO3                       : AH2       : power  :                   : 3.3V    : 3         :                
@@ -311,11 +311,11 @@ HEX5[6]                      : AH18      : output : 3.3-V LVTTL       :         
 HEX5[3]                      : AH19      : output : 3.3-V LVTTL       :         : 4         : Y              
 VCCIO4                       : AH20      : power  :                   : 3.3V    : 4         :                
 HEX4[3]                      : AH21      : output : 3.3-V LVTTL       :         : 4         : Y              
-MOTOR_STEPX2                 : AH22      : output : 3.3-V LVTTL       :         : 4         : Y              
-MOTOR_DIRX1                  : AH23      : output : 3.3-V LVTTL       :         : 4         : Y              
+MOTOR_STEPY                  : AH22      : output : 3.3-V LVTTL       :         : 4         : Y              
+MOTOR_DIRX                   : AH23      : output : 3.3-V LVTTL       :         : 4         : Y              
 VCCIO4                       : AH24      : power  :                   : 3.3V    : 4         :                
 D5M_SCLK                     : AH25      : output : 3.3-V LVTTL       :         : 4         : Y              
-MOTOR_STEPY1                 : AH26      : output : 3.3-V LVTTL       :         : 4         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : AH26      :        :                   :         : 4         :                
 VCCIO4                       : AH27      : power  :                   : 3.3V    : 4         :                
 VCCIO1                       : B1        : power  :                   : 3.3V    : 1         :                
 GND                          : B2        : gnd    :                   :         :           :                

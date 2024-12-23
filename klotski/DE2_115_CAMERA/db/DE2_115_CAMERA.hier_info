@@ -1,5 +1,5 @@
 |DE2_115_CAMERA
-CLOCK_50 => CLOCK_50.IN2
+CLOCK_50 => CLOCK_50.IN1
 CLOCK2_50 => CLOCK2_50.IN3
 CLOCK3_50 => ~NO_FANOUT~
 SMA_CLKIN => ~NO_FANOUT~
@@ -43,23 +43,23 @@ EX_IO[4] <> <UNC>
 EX_IO[5] <> <UNC>
 EX_IO[6] <> <UNC>
 SW[0] => SW[0].IN1
-SW[1] => LEDR[1].DATAIN
-SW[2] => LEDR[2].DATAIN
-SW[3] => LEDR[3].DATAIN
-SW[4] => LEDR[4].DATAIN
-SW[5] => LEDR[5].DATAIN
-SW[6] => LEDR[6].DATAIN
-SW[7] => LEDR[7].DATAIN
-SW[8] => LEDR[8].DATAIN
-SW[9] => LEDR[9].DATAIN
-SW[10] => LEDR[10].DATAIN
-SW[11] => LEDR[11].DATAIN
-SW[12] => LEDR[12].DATAIN
-SW[13] => LEDR[13].DATAIN
-SW[14] => LEDR[14].DATAIN
-SW[15] => LEDR[15].DATAIN
+SW[1] => SW[1].IN2
+SW[2] => SW[2].IN2
+SW[3] => SW[3].IN2
+SW[4] => SW[4].IN2
+SW[5] => SW[5].IN2
+SW[6] => SW[6].IN2
+SW[7] => SW[7].IN2
+SW[8] => SW[8].IN2
+SW[9] => SW[9].IN2
+SW[10] => SW[10].IN2
+SW[11] => SW[11].IN2
+SW[12] => SW[12].IN2
+SW[13] => SW[13].IN2
+SW[14] => SW[14].IN2
+SW[15] => SW[15].IN2
 SW[16] => SW[16].IN3
-SW[17] => LEDR[17].DATAIN
+SW[17] => SW[17].IN2
 HEX0[0] <= SEG7_LUT_8:u5.oSEG0
 HEX0[1] <= SEG7_LUT_8:u5.oSEG0
 HEX0[2] <= SEG7_LUT_8:u5.oSEG0
@@ -427,12 +427,10 @@ D5M_SDATA <> I2C_CCD_Config:u8.I2C_SDAT
 D5M_STROBE => ~NO_FANOUT~
 D5M_TRIGGER <= <VCC>
 D5M_XCLKIN <= sdram_pll:u6.c2
-MOTOR_STEPX1 <= Motor_Control:motor_control1.o_step_control
-MOTOR_DIRX1 <= Motor_Control:motor_control1.o_direction
-MOTOR_STEPX2 <= Motor_Control:motor_control2.o_step_control
-MOTOR_DIRX2 <= Motor_Control:motor_control2.o_direction
-MOTOR_STEPY1 <= <GND>
-MOTOR_DIRY1 <= <GND>
+MOTOR_STEPX <= test_motor_step:uut.o_step_x
+MOTOR_DIRX <= test_motor_step:uut.o_direction_x
+MOTOR_STEPY <= test_motor_step:uut.o_step_y
+MOTOR_DIRY <= test_motor_step:uut.o_direction_y
 
 
 |DE2_115_CAMERA|Reset_Delay:u2
@@ -10797,7 +10795,52 @@ o_block16_avg[23] <= block_Red_value_r[15][7].DB_MAX_OUTPUT_PORT_TYPE
 o_done <= o_done_r.DB_MAX_OUTPUT_PORT_TYPE
 
 
-|DE2_115_CAMERA|Motor_Control:motor_control1
+|DE2_115_CAMERA|test_motor_step:uut
+i_Clk => i_Clk.IN2
+i_rst_n => i_rst_n.IN2
+i_en => state_w.OUTPUTSELECT
+i_en => state_w.OUTPUTSELECT
+i_en => always1.IN0
+i_total_steps_x[0] => total_steps_x[0].IN1
+i_total_steps_x[1] => total_steps_x[1].IN1
+i_total_steps_x[2] => total_steps_x[2].IN1
+i_total_steps_x[3] => total_steps_x[3].IN1
+i_total_steps_x[4] => total_steps_x[4].IN1
+i_total_steps_x[5] => total_steps_x[5].IN1
+i_total_steps_x[6] => total_steps_x[6].IN1
+i_total_steps_x[7] => total_steps_x[7].IN1
+i_total_steps_x[8] => total_steps_x[8].IN1
+i_total_steps_x[9] => total_steps_x[9].IN1
+i_total_steps_x[10] => total_steps_x[10].IN1
+i_total_steps_x[11] => total_steps_x[11].IN1
+i_total_steps_x[12] => total_steps_x[12].IN1
+i_total_steps_x[13] => total_steps_x[13].IN1
+i_total_steps_x[14] => total_steps_x[14].IN1
+i_total_steps_y[0] => total_steps_y[0].IN1
+i_total_steps_y[1] => total_steps_y[1].IN1
+i_total_steps_y[2] => total_steps_y[2].IN1
+i_total_steps_y[3] => total_steps_y[3].IN1
+i_total_steps_y[4] => total_steps_y[4].IN1
+i_total_steps_y[5] => total_steps_y[5].IN1
+i_total_steps_y[6] => total_steps_y[6].IN1
+i_total_steps_y[7] => total_steps_y[7].IN1
+i_total_steps_y[8] => total_steps_y[8].IN1
+i_total_steps_y[9] => total_steps_y[9].IN1
+i_total_steps_y[10] => total_steps_y[10].IN1
+i_total_steps_y[11] => total_steps_y[11].IN1
+i_total_steps_y[12] => total_steps_y[12].IN1
+i_total_steps_y[13] => total_steps_y[13].IN1
+i_total_steps_y[14] => total_steps_y[14].IN1
+i_dir_x => dir_x.IN1
+i_dir_y => dir_y.IN1
+o_step_x <= Motor_Control:x_motor.o_step_control
+o_direction_x <= Motor_Control:x_motor.o_direction
+o_step_y <= Motor_Control:y_motor.o_step_control
+o_direction_y <= Motor_Control:y_motor.o_direction
+o_done <= done_r.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|DE2_115_CAMERA|test_motor_step:uut|Motor_Control:x_motor
 i_Clk => done_r.CLK
 i_Clk => step_control_r.CLK
 i_Clk => total_steps_r[0].CLK
@@ -11016,7 +11059,7 @@ o_direction <= direction_r.DB_MAX_OUTPUT_PORT_TYPE
 o_done <= done_r.DB_MAX_OUTPUT_PORT_TYPE
 
 
-|DE2_115_CAMERA|Motor_Control:motor_control2
+|DE2_115_CAMERA|test_motor_step:uut|Motor_Control:y_motor
 i_Clk => done_r.CLK
 i_Clk => step_control_r.CLK
 i_Clk => total_steps_r[0].CLK

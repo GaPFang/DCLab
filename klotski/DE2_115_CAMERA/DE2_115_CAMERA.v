@@ -234,12 +234,11 @@ module DE2_115_CAMERA(
 	D5M_TRIGGER,
 	D5M_XCLKIN, 
 
-	MOTOR_STEPX1,
-	MOTOR_DIRX1,
-	MOTOR_STEPX2,
-	MOTOR_DIRX2,
-	MOTOR_STEPY1,
-	MOTOR_DIRY1
+	MOTOR_STEPX,
+	MOTOR_DIRX,
+	MOTOR_STEPY,
+	MOTOR_DIRY
+	
 );
 
 //=======================================================
@@ -437,13 +436,14 @@ inout		          		D5M_SDATA;
 input		          		D5M_STROBE;
 output		          		D5M_TRIGGER;
 output		          		D5M_XCLKIN;
-output						MOTOR_STEPX1;
-output						MOTOR_DIRX1;
-output						MOTOR_STEPX2;
-output						MOTOR_DIRX2;
+output						MOTOR_STEPX;
+output						MOTOR_DIRX;
+output						MOTOR_STEPY;
+output						MOTOR_DIRY;
+/*
 output						MOTOR_STEPY1;
 output						MOTOR_DIRY1;
-
+*/
 
 //=======================================================
 //  REG/WIRE declarations
@@ -481,13 +481,14 @@ wire    [12:0]  V_Cont;
 wire    [23:0]  RGB_avg;
 wire            key2down;
 
-wire    		step_control_x1;
-wire			direction_x1;
-wire    		step_control_x2;
-wire			direction_x2;
+wire    		step_control_x;
+wire			direction_x;
+wire    		step_control_y;
+wire			direction_y;
+/*
 wire    		step_control_y1;
 wire			direction_y1;
-
+*/
 //power on start
 wire             auto_start;
 //=======================================================
@@ -508,12 +509,14 @@ assign  VGA_G = oVGA_G[9:2];
 assign  VGA_B = oVGA_B[9:2];
 
 //Motor
-assign	MOTOR_STEPX1 = step_control_x1;
-assign	MOTOR_DIRX1 = direction_x1;
-assign	MOTOR_STEPX2 = step_control_x2;
-assign	MOTOR_DIRX2 = direction_x2;
+assign	MOTOR_STEPX = step_control_x;
+assign	MOTOR_DIRX = direction_x;
+assign	MOTOR_STEPY = step_control_y;
+assign	MOTOR_DIRY = direction_y;
+/*
 assign	MOTOR_STEPY1 = step_control_y1;
 assign	MOTOR_DIRY1 = direction_y1;
+*/
 
 //D5M read 
 always@(posedge D5M_PIXLCLK)
@@ -737,6 +740,7 @@ Read_VGA 		read_vga (
 
 );
 
+/*
 Motor_Control motor_control1(
     .i_Clk(CLOCK_50),
     .i_rst_n(DLY_RST_2),
@@ -758,5 +762,22 @@ Motor_Control motor_control2(
     .o_direction(direction_x2),
     .o_done()
 );
+*/
+
+test_motor_step uut(
+    .i_Clk(CLOCK_50),
+    .i_rst_n(DLY_RST_2),
+    .i_en(key2down),
+	.i_total_steps_x(SW[15:1]),
+	.i_total_steps_y(SW[15:1]),
+	.i_dir_x(SW[17]),
+	.i_dir_y(SW[17]),
+    .o_step_x(step_control_x),
+    .o_direction_x(direction_x),
+    .o_step_y(step_control_y),
+    .o_direction_y(direction_y), 
+    .o_done()
+);
+
 
 endmodule
