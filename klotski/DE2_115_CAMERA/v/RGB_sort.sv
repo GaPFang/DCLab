@@ -28,7 +28,7 @@ module RGBSort (
   logic [1:0] counter, counter_nxt;
   logic counter_big, counter_big_nxt;
 
-  localparam [3:0] LUT [0:2][0:2][0:1] = '{'{'{4'd15, 4'd14}, '{4'd13, 4'd12}, '{4'd11, 4'd10}}, '{'{4'd9, 4'd8}, '{4'd7, 4'd0}, '{4'd6, 4'd0}}, '{'{4'd5, 4'd4}, '{4'd3, 4'd0}, '{4'd2, 4'd1}}};
+  localparam [3:0] LUT [0:2][0:2][0:2] = '{'{'{4'd15, 4'd0, 4'd14}, '{4'd13, 4'd0, 4'd12}, '{4'd11, 4'd0, 4'd10}}, '{'{4'd9, 4'd0, 4'd8}, '{4'd7, 4'd0, 4'd0}, '{4'd0, 4'd6, 4'd0}}, '{'{4'd5, 4'd4, 4'd0}, '{4'd3, 4'd0, 4'd0}, '{4'd2, 4'd0, 4'd1}}};
   // RGB
   integer i, j, k, p, q;
 
@@ -227,10 +227,12 @@ module RGBSort (
             number_w[1][i] = 1;
           else
             number_w[1][i] = 2;
-          if((order_r[0][0] == i) || (order_r[0][1] == i) || (order_r[0][2] == i) || (order_r[0][3] == i) || (order_r[0][4] == i) || (order_r[0][5] == i) || (order_r[0][6] == i) || (order_r[0][7] == i) || (order_r[0][8] == i))
+          if((order_r[0][0] == i) || (order_r[0][1] == i) || (order_r[0][2] == i) || (order_r[0][3] == i) || (order_r[0][4] == i) || (order_r[0][5] == i) || (order_r[0][6] == i) || (order_r[0][7] == i))
             number_w[2][i] = 0;
+          else if((order_r[0][8] == i) || (order_r[0][9] == i))
+            number_w[2][i] = 1; 
           else
-            number_w[2][i] = 1;
+            number_w[2][i] = 2;
         end
       end
       S_POST2: begin
