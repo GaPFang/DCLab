@@ -28,7 +28,7 @@ module RGBSort (
   logic [1:0] counter, counter_nxt;
   logic counter_big, counter_big_nxt;
 
-  localparam [3:0] LUT [0:2][0:2][0:2] = '{'{'{4'd15, 4'd14, 4'd14}, '{4'd13, 4'd0, 4'd12}, '{4'd11, 4'd0, 4'd10}}, '{'{4'd9, 4'd0, 4'd8}, '{4'd7, 4'd0, 4'd0}, '{4'd0, 4'd6, 4'd0}}, '{'{4'd5, 4'd4, 4'd0}, '{4'd3, 4'd0, 4'd0}, '{4'd2, 4'd0, 4'd1}}};
+  const logic [3:0] LUT [0:2][0:2][0:2] = '{'{'{4'd15, 4'd14, 4'd14}, '{4'd13, 4'd0, 4'd12}, '{4'd11, 4'd0, 4'd10}}, '{'{4'd9, 4'd0, 4'd8}, '{4'd7, 4'd0, 4'd0}, '{4'd0, 4'd6, 4'd0}}, '{'{4'd5, 4'd4, 4'd0}, '{4'd3, 4'd0, 4'd0}, '{4'd2, 4'd0, 4'd1}}};
   // RGB
   integer i, j, k, p, q;
 
@@ -57,6 +57,15 @@ module RGBSort (
     state_nxt = state;
     counter_nxt = counter;
     counter_big_nxt = counter_big;
+    for (i = 0; i < 3; i += 1) begin
+        for(j = 0; j < 8 ; j += 1) begin
+            tocomp_data1[i][j] = 0;
+            tocomp_data2[i][j] = 0;
+            tocomp_pos1[i][j] = 0;
+            tocomp_pos2[i][j] = 0;
+
+        end
+    end
     for(i=0; i<3; i=i+1) begin
       for(j=0; j<16; j=j+1) begin
         number_w[i][j] = number_r[i][j]; //R=2, G=1, B=0
@@ -256,15 +265,20 @@ module RGBSort (
           order_r[p][q] <= 0;
         end
       end
+      counter <= 0;
+      counter_big <= 0;
     end else begin
       state <= state_nxt;
       counter <= counter_nxt;
       counter_big <= counter_big_nxt;
-      number_r <= number_w;
-      order_r <= order_w;
+      for(p=0; p<3; p=p+1) begin
+        for(q=0; q<16; q=q+1) begin
+          number_r[p][q] <= number_w[p][q];
+          order_r[p][q] <= order_w[p][q];
+        end
+      end
     end
   end
-
 endmodule
   
 module compare2 (
