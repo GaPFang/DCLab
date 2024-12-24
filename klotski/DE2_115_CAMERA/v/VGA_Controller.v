@@ -22,7 +22,7 @@
 //           
 //                     Terasic Technologies Inc
 //                     356 Fu-Shin E. Rd Sec. 1. JhuBei City,
-//                     HsinChu County, Taiwan
+//                                                                                                                            HsinChu County, Taiwan
 //                     302
 //
 //                     web: http://www.terasic.com/
@@ -139,14 +139,30 @@ assign v_mask = 13'd0 ;//iZOOM_MODE_SW ? 13'd0 : 13'd26;
 assign	mVGA_BLANK	=	mVGA_H_SYNC & mVGA_V_SYNC;
 assign	mVGA_SYNC	=	1'b0;
 
-assign	mVGA_R	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// assign	mVGA_R	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
+// 						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// 						?	iRed	:	0;
+// assign	mVGA_G	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
+// 						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// 						?	iGreen	:	0;
+// assign	mVGA_B	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
+// 						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// 						?	iBlue	:	0;
+
+localparam START_H_POS = 120;
+localparam START_V_POS = 10;
+
+localparam H_inter_block_width = 140;
+localparam V_inter_block_width = 145;
+
+assign	mVGA_R	=	(	H_Cont>=X_START+START_H_POS 	&& H_Cont<X_START+START_H_POS+H_inter_block_width*4 &&
+						V_Cont>=Y_START+v_mask+START_V_POS 	&& V_Cont+v_mask+START_V_POS+V_inter_block_width*4 )
 						?	iRed	:	0;
-assign	mVGA_G	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+assign	mVGA_G	=	(	H_Cont>=X_START+START_H_POS 	&& H_Cont<X_START+START_H_POS+H_inter_block_width*4 &&
+						V_Cont>=Y_START+v_mask+START_V_POS 	&& V_Cont+v_mask+START_V_POS+V_inter_block_width*4 )
 						?	iGreen	:	0;
-assign	mVGA_B	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+assign	mVGA_B	=	(	H_Cont>=X_START+START_H_POS 	&& H_Cont<X_START+START_H_POS+H_inter_block_width*4 &&
+						V_Cont>=Y_START+v_mask+START_V_POS 	&& V_Cont+v_mask+START_V_POS+V_inter_block_width*4 )
 						?	iBlue	:	0;
 
 assign  oH_Cont = (H_Cont >= X_START) ? (H_Cont - X_START) : 0;
@@ -172,7 +188,7 @@ always@(posedge iCLK or negedge iRST_N)
 				oVGA_BLANK <= mVGA_BLANK;
 				oVGA_SYNC <= mVGA_SYNC;
 				oVGA_H_SYNC <= mVGA_H_SYNC;
-				oVGA_V_SYNC <= mVGA_V_SYNC;				
+				oVGA_V_SYNC <= mVGA_V_SYNC;
 			end               
 	end
 
