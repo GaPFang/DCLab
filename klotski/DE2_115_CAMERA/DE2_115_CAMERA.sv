@@ -234,11 +234,12 @@ module DE2_115_CAMERA(
 	D5M_TRIGGER,
 	D5M_XCLKIN, 
 
-	MOTOR_STEPX,
-	MOTOR_DIRX,
-	MOTOR_STEPY,
-	MOTOR_DIRY
-	
+	MOTOR_STEPX1,
+	MOTOR_DIRX1,
+	MOTOR_STEPX2,
+	MOTOR_DIRX2,
+	MOTOR_STEPY1,
+	MOTOR_DIRY1
 );
 
 //=======================================================
@@ -436,14 +437,13 @@ inout		          		D5M_SDATA;
 input		          		D5M_STROBE;
 output		          		D5M_TRIGGER;
 output		          		D5M_XCLKIN;
-output						MOTOR_STEPX;
-output						MOTOR_DIRX;
-output						MOTOR_STEPY;
-output						MOTOR_DIRY;
-/*
+output						MOTOR_STEPX1;
+output						MOTOR_DIRX1;
+output						MOTOR_STEPX2;
+output						MOTOR_DIRX2;
 output						MOTOR_STEPY1;
 output						MOTOR_DIRY1;
-*/
+
 
 //=======================================================
 //  REG/WIRE declarations
@@ -481,14 +481,17 @@ wire    [12:0]  V_Cont;
 wire    [23:0]  RGB_avg;
 wire            key2down;
 
-wire    		step_control_x;
-wire			direction_x;
-wire    		step_control_y;
-wire			direction_y;
-/*
+wire    		step_control_x1;
+wire			direction_x1;
+wire    		step_control_x2;
+wire			direction_x2;
 wire    		step_control_y1;
 wire			direction_y1;
-*/
+wire [23:0] block_colors [0:15];
+wire read_VGA_done;
+wire RGB_sort_done;
+wire [63:0] block_results;
+
 //power on start
 wire             auto_start;
 //=======================================================
@@ -509,14 +512,12 @@ assign  VGA_G = oVGA_G[9:2];
 assign  VGA_B = oVGA_B[9:2];
 
 //Motor
-assign	MOTOR_STEPX = step_control_x;
-assign	MOTOR_DIRX = direction_x;
-assign	MOTOR_STEPY = step_control_y;
-assign	MOTOR_DIRY = direction_y;
-/*
+assign	MOTOR_STEPX1 = step_control_x1;
+assign	MOTOR_DIRX1 = direction_x1;
+assign	MOTOR_STEPX2 = step_control_x2;
+assign	MOTOR_DIRX2 = direction_x2;
 assign	MOTOR_STEPY1 = step_control_y1;
 assign	MOTOR_DIRY1 = direction_y1;
-*/
 
 //D5M read 
 always@(posedge D5M_PIXLCLK)
@@ -579,11 +580,12 @@ RAW2RGB				u4	(	.iCLK(D5M_PIXLCLK),
 						);
 `endif
 //Frame count display
+wire [7:0][7:0][3:0] red_avg;
 SEG7_LUT_8 			u5	(	.oSEG0(HEX0),.oSEG1(HEX1),
 							.oSEG2(HEX2),.oSEG3(HEX3),
 							.oSEG4(HEX4),.oSEG5(HEX5),
 							.oSEG6(HEX6),.oSEG7(HEX7),
-							.iDIG({8'b0, RGB_avg})//.iDIG(Frame_Cont[31:0])
+							.iDIG(block_results[SW[1]*32+:32])//.iDIG(Frame_Cont[31:0])
 						);
 
 sdram_pll 			u6	(
@@ -711,73 +713,93 @@ Debounce deb2(
 	.o_neg(key2down) 
 );
 
-Read_VGA 		read_vga (
+// Read_VGA 		read_vga (
+// 							.i_Start(key2down),
+//     						.i_Red(VGA_R),
+//     						.i_Green(VGA_G),
+//     						.i_Blue(VGA_B),
+//     						.i_H_Counter(H_Cont),
+//     						.i_V_Counter(V_Cont),
+// 							.i_Clk(VGA_CTRL_CLK),
+//     						.i_rst_n(DLY_RST_2),
+// 							.o_block1_avg(block_colors[0]),
+//     						.o_block2_avg(block_colors[1]),
+//     						.o_block3_avg(block_colors[2]),
+//     						.o_block4_avg(block_colors[3]),
+//     						.o_block5_avg(block_colors[4]),
+//     						.o_block6_avg(block_colors[5]),
+//     						.o_block7_avg(block_colors[6]),
+//     						.o_block8_avg(block_colors[7]),
+//     						.o_block9_avg(block_colors[8]),
+//     						.o_block10_avg(block_colors[9]),
+//     						.o_block11_avg(block_colors[10]),
+//     						.o_block12_avg(block_colors[11]),
+//     						.o_block13_avg(block_colors[12]),
+//     						.o_block14_avg(block_colors[13]),
+//     						.o_block15_avg(block_colors[14]),
+//     						.o_block16_avg(block_colors[15]),
+//     						.o_done(read_VGA_done)
+
+// );
+
+Read_VGA_Grey 		read_vga (
 							.i_Start(key2down),
-    						.i_Red(oVGA_R),
-    						.i_Green(oVGA_G),
-    						.i_Blue(oVGA_B),
+    						.i_Red(VGA_R),
+    						.i_Green(VGA_G),
+    						.i_Blue(VGA_B),
     						.i_H_Counter(H_Cont),
     						.i_V_Counter(V_Cont),
 							.i_Clk(VGA_CTRL_CLK),
     						.i_rst_n(DLY_RST_2),
-							.o_block1_avg(RGB_avg),
-    						.o_block2_avg(),
-    						.o_block3_avg(),
-    						.o_block4_avg(),
-    						.o_block5_avg(),
-    						.o_block6_avg(),
-    						.o_block7_avg(),
-    						.o_block8_avg(),
-    						.o_block9_avg(),
-    						.o_block10_avg(),
-    						.o_block11_avg(),
-    						.o_block12_avg(),
-    						.o_block13_avg(),
-    						.o_block14_avg(),
-    						.o_block15_avg(),
-    						.o_block16_avg(),
-    						.o_done()
-
+							.o_block_order(block_results),
+							// .o_red_avg(red_avg),
+    						.o_done(read_VGA_done)
 );
 
-/*
-Motor_Control motor_control1(
-    .i_Clk(CLOCK_50),
-    .i_rst_n(DLY_RST_2),
-    .i_en(1),
-    .i_direction(1),
-    .i_total_steps(32'd010000),
-    .o_step_control(step_control_x1),
-    .o_direction(direction_x1),
-    .o_done()
-);
+// Motor_Control motor_control1(
+//     .i_Clk(CLOCK_50),
+//     .i_rst_n(DLY_RST_2),
+//     .i_en(1),
+//     .i_direction(1),
+//     .i_total_steps(32'd010000),
+//     .o_step_control(step_control_x1),
+//     .o_direction(direction_x1),
+//     .o_done()
+// );
 
-Motor_Control motor_control2(
-    .i_Clk(CLOCK_50),
-    .i_rst_n(DLY_RST_2),
-    .i_en(1),
-    .i_direction(1),
-    .i_total_steps(32'd010000),
-    .o_step_control(step_control_x2),
-    .o_direction(direction_x2),
-    .o_done()
-);
-*/
+// Motor_Control motor_control2(
+//     .i_Clk(CLOCK_50),
+//     .i_rst_n(DLY_RST_2),
+//     .i_en(1),
+//     .i_direction(1),
+//     .i_total_steps(32'd010000),
+//     .o_step_control(step_control_x2),
+//     .o_direction(direction_x2),
+//     .o_done()
+// );
 
-test_motor_step uut(
-    .i_Clk(CLOCK_50),
-    .i_rst_n(DLY_RST_2),
-    .i_en(key2down),
-	.i_total_steps_x(SW[15:1]),
-	.i_total_steps_y(SW[15:1]),
-	.i_dir_x(SW[17]),
-	.i_dir_y(SW[17]),
-    .o_step_x(step_control_x),
-    .o_direction_x(direction_x),
-    .o_step_y(step_control_y),
-    .o_direction_y(direction_y), 
-    .o_done()
-);
-
+// RGBSort rgbsort0(
+// 		.i_clk(CLOCK_50),
+// 		.i_rst_n(DLY_RST_2),
+// 		.i_block0(block_colors[0]),
+// 		.i_block1(block_colors[1]),
+// 		.i_block2(block_colors[2]),
+// 		.i_block3(block_colors[3]),
+// 		.i_block4(block_colors[4]),
+// 		.i_block5(block_colors[5]),
+// 		.i_block6(block_colors[6]),
+// 		.i_block7(block_colors[7]),
+// 		.i_block8(block_colors[8]),
+// 		.i_block9(block_colors[9]),
+// 		.i_block10(block_colors[10]),
+// 		.i_block11(block_colors[11]),
+// 		.i_block12(block_colors[12]),
+// 		.i_block13(block_colors[13]),
+// 		.i_block14(block_colors[14]),
+// 		.i_block15(block_colors[15]),
+// 		.i_start(read_VGA_done),
+// 		.o_order(block_results),
+// 		.o_done(RGB_sort_done)
+// );
 
 endmodule

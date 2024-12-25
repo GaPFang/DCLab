@@ -28,7 +28,7 @@ module Read_VGA_Grey(
     // output [23:0] o_block15_avg,
     // output [23:0] o_block16_avg,
 
-    output [7:0][7:0][3:0] o_red_avg,
+    // output [7:0][7:0][3:0] o_red_avg,
 
     output o_done
 
@@ -107,13 +107,10 @@ integer i, j, k;
 
 logic [63:0] block_order_r, block_order_w;
 //assign
-// assign o_block_order = {block_Red_value_r[0][3:0], block_Red_value_r[1][3:0], block_Red_value_r[2][3:0], block_Red_value_r[3][3:0], block_Red_value_r[4][3:0], block_Red_value_r[5][3:0], block_Red_value_r[6][3:0], block_Red_value_r[7][3:0], block_Red_value_r[8][3:0], block_Red_value_r[9][3:0], block_Red_value_r[10][3:0], block_Red_value_r[11][3:0], block_Red_value_r[12][3:0], block_Red_value_r[13][3:0], block_Red_value_r[14][3:0], block_Red_value_r[15][3:0]};
-
+assign o_block_order = {block_Red_value_r[0][0], block_Red_value_r[0][1], block_Red_value_r[0][2], block_Red_value_r[0][3], block_Red_value_r[1][0], block_Red_value_r[1][1], block_Red_value_r[1][2], block_Red_value_r[1][3], block_Red_value_r[2][0], block_Red_value_r[2][1], block_Red_value_r[2][2], block_Red_value_r[2][3], block_Red_value_r[3][0], block_Red_value_r[3][1], block_Red_value_r[3][2], block_Red_value_r[3][3]};
 assign o_done = o_done_r;
 
-assign o_red_avg = block_Red_value_r;
 
-logic flag;
 //
 
 //state enumeration
@@ -213,7 +210,7 @@ always_comb begin
         S_AVG: begin
             for (j = 0; j < 8; j = j + 1) begin
                 for (k = 0; k < 8; k+=1) begin
-                    // block_order_w[j][k] = (block_Red_value_r[j][k] >> 2) > THRESHOLD ? 1'b1:1'b0;
+                    block_Red_value_w[k][j] = block_Red_value_r[k][j] > THRESHOLD ? 1'b1:1'b0;
                     // block_Red_value_w[j][k] = (block_Red_value_r[j][k] >> 2);
                     // block_Green_value_w[j] = block_Green_value_r[j] >> 2;
                     // block_Blue_value_w[j] = block_Blue_value_r[j] >> 2;
@@ -224,7 +221,8 @@ always_comb begin
         S_DECODE: begin
             for (j=0; j<4; j=j+1) begin
                 for (k=0; k<4; k=k+1) begin
-                    // block_Red_value_w[4*j+k] = {9'b0, block_Red_value_r[16*j+2*k], block_Red_value_r[16*j+2*k+1], block_Red_value_r[16*j+8+2*k], block_Red_value_r[16*j+8+2*k+1]};
+                    // block_Red_value_w[j][k] = {block_Red_value_r[16*j+2*k][0], block_Red_value_r[16*j+2*k+1][0], block_Red_value_r[16*j+8+2*k][0], block_Red_value_r[16*j+8+2*k+1][0]};
+                    block_Red_value_w[j][k] = {block_Red_value_r[2*j][2*k][0], block_Red_value_r[2*j][2*k+1][0], block_Red_value_r[2*j+1][2*k][0], block_Red_value_r[2*j+1][2*k+1][0]};
                     // block_Red_value_w[4*j+k] = {{block_order_r[8*j+2*k]}, {block_order_r[8*j+2*k+1]}, {block_order_r[8*j+2*k+2]}, {block_order_r[8*j+2*k+3]}};
                 end
             end
@@ -262,10 +260,8 @@ always_ff @(posedge i_Clk or negedge i_rst_n) begin
         Blue_r <= 0;
         H_Counter_r <= 0;
         V_Counter_r <= 0;
-        flag <=  0;
     end
     else begin
-    flag <= (H_Counter_r == LEFT_ORIGIN & V_Counter_r);
         state_r <= state_w;
         // for (i = 0; i < 16; i = i + 1) begin
         //     block_Red_value_r[i] <= block_Red_value_w[i];
