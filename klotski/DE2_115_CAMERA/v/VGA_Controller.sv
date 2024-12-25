@@ -22,7 +22,7 @@
 //           
 //                     Terasic Technologies Inc
 //                     356 Fu-Shin E. Rd Sec. 1. JhuBei City,
-//                     HsinChu County, Taiwan
+//                                                                                                                            HsinChu County, Taiwan
 //                     302
 //
 //                     web: http://www.terasic.com/
@@ -139,19 +139,81 @@ assign v_mask = 13'd0 ;//iZOOM_MODE_SW ? 13'd0 : 13'd26;
 assign	mVGA_BLANK	=	mVGA_H_SYNC & mVGA_V_SYNC;
 assign	mVGA_SYNC	=	1'b0;
 
-assign	mVGA_R	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
-						?	iRed	:	0;
-assign	mVGA_G	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// assign	mVGA_R	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
+// 						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// 						?	iRed	:	0;
+// assign	mVGA_G	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
+// 						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// 						?	iGreen	:	0;
+// assign	mVGA_B	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
+// 						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+// 						?	iBlue	:	0;
+localparam START_H_POS = 120;
+localparam START_V_POS = 10;
+
+// localparam H_intra_block_width = 15;
+// localparam H_inter_block_width = 140;
+
+// localparam V_intra_block_width = 15;
+// localparam V_inter_block_width = 145;
+
+localparam H_intra_block_width = 5;
+localparam H_inter_block_width = 70;
+
+localparam V_intra_block_width = 5;
+localparam V_inter_block_width = 72;
+
+localparam LEFT_ORIGIN = 35 + START_H_POS;
+localparam UP_ORIGIN = 36 + START_V_POS;
+
+const logic [9:0] BLOCK_H [0:7][0:1] = '{'{LEFT_ORIGIN, LEFT_ORIGIN + H_intra_block_width}, 
+'{LEFT_ORIGIN + H_inter_block_width, LEFT_ORIGIN + H_inter_block_width + H_intra_block_width}, 
+'{LEFT_ORIGIN + 2*H_inter_block_width, LEFT_ORIGIN + 2*H_inter_block_width + H_intra_block_width}, 
+'{LEFT_ORIGIN + 3*H_inter_block_width, LEFT_ORIGIN + 3*H_inter_block_width + H_intra_block_width}, 
+'{LEFT_ORIGIN + 4*H_inter_block_width, LEFT_ORIGIN + 4*H_inter_block_width + H_intra_block_width},
+'{LEFT_ORIGIN + 5*H_inter_block_width, LEFT_ORIGIN + 5*H_inter_block_width + H_intra_block_width},
+'{LEFT_ORIGIN + 6*H_inter_block_width, LEFT_ORIGIN + 6*H_inter_block_width + H_intra_block_width},
+'{LEFT_ORIGIN + 7*H_inter_block_width, LEFT_ORIGIN + 7*H_inter_block_width + H_intra_block_width}};
+
+const logic [9:0] BLOCK_V [0:7][0:1] = '{'{UP_ORIGIN, UP_ORIGIN + V_intra_block_width},
+'{UP_ORIGIN + V_inter_block_width, UP_ORIGIN + V_inter_block_width + V_intra_block_width},
+'{UP_ORIGIN + 2*V_inter_block_width, UP_ORIGIN + 2*V_inter_block_width + V_intra_block_width},
+'{UP_ORIGIN + 3*V_inter_block_width, UP_ORIGIN + 3*V_inter_block_width + V_intra_block_width},
+'{UP_ORIGIN + 4*V_inter_block_width, UP_ORIGIN + 4*V_inter_block_width + V_intra_block_width},
+'{UP_ORIGIN + 5*V_inter_block_width, UP_ORIGIN + 5*V_inter_block_width + V_intra_block_width},
+'{UP_ORIGIN + 6*V_inter_block_width, UP_ORIGIN + 6*V_inter_block_width + V_intra_block_width},
+'{UP_ORIGIN + 7*V_inter_block_width, UP_ORIGIN + 7*V_inter_block_width + V_intra_block_width}};
+
+
+reg [9:0] tmp_R;
+integer j, k;
+always @(*) begin
+	tmp_R = iRed;
+	for (j=0; j<8; j=j+1) begin
+		for (k=0; k<8; k=k+1) begin
+			if (((H_Cont-X_START == BLOCK_H[j][0]) || // block1
+			(H_Cont-X_START == BLOCK_H[j][1])) &&
+			((V_Cont-Y_START == BLOCK_V[k][0]) || (V_Cont-Y_START == BLOCK_V[k][1]))) begin
+				tmp_R = {10{1'b1}};
+			end
+		end
+	end
+end
+
+assign	mVGA_R	=	(	H_Cont>=X_START+START_H_POS 	&& H_Cont<X_START+START_H_POS+(H_inter_block_width<<3) &&
+						V_Cont>=Y_START+v_mask+START_V_POS 	&& V_Cont+v_mask+START_V_POS+(V_inter_block_width<<3) )
+						?	tmp_R	:	0;
+assign	mVGA_G	=	(	H_Cont>=X_START+START_H_POS 	&& H_Cont<X_START+START_H_POS+(H_inter_block_width<<3) &&
+						V_Cont>=Y_START+v_mask+START_V_POS 	&& V_Cont+v_mask+START_V_POS+(V_inter_block_width<<3) )
 						?	iGreen	:	0;
-assign	mVGA_B	=	(	H_Cont>=X_START 	&& H_Cont<X_START+H_SYNC_ACT &&
-						V_Cont>=Y_START+v_mask 	&& V_Cont<Y_START+V_SYNC_ACT )
+assign	mVGA_B	=	(	H_Cont>=X_START+START_H_POS 	&& H_Cont<X_START+START_H_POS+(H_inter_block_width<<3) &&
+						V_Cont>=Y_START+v_mask+START_V_POS 	&& V_Cont+v_mask+START_V_POS+(V_inter_block_width<<3) )
 						?	iBlue	:	0;
 
-assign  oH_Cont = (H_Cont >= X_START) ? (H_Cont - X_START) : 0;
-assign  oV_Cont = (V_Cont >= Y_START) ? (V_Cont - Y_START) : 0;
-
+// assign  oH_Cont = (H_Cont >= X_START) ? (H_Cont - X_START) : 0;
+// assign  oV_Cont = (V_Cont >= Y_START) ? (V_Cont - Y_START) : 0;
+assign  oH_Cont = (H_Cont - X_START);
+assign  oV_Cont = (V_Cont - Y_START);
 always@(posedge iCLK or negedge iRST_N)
 	begin
 		if (!iRST_N)
@@ -172,7 +234,7 @@ always@(posedge iCLK or negedge iRST_N)
 				oVGA_BLANK <= mVGA_BLANK;
 				oVGA_SYNC <= mVGA_SYNC;
 				oVGA_H_SYNC <= mVGA_H_SYNC;
-				oVGA_V_SYNC <= mVGA_V_SYNC;				
+				oVGA_V_SYNC <= mVGA_V_SYNC;
 			end               
 	end
 

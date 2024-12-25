@@ -11,34 +11,43 @@ module tb_Read_VGA;
   wire [23:0] o_block6_avg, o_block7_avg, o_block8_avg, o_block9_avg, o_block10_avg;
   wire [23:0] o_block11_avg, o_block12_avg, o_block13_avg, o_block14_avg, o_block15_avg;
   wire [23:0] o_block16_avg;
+  wire [7:0][7:0][3:0] o_red_avg;
+  wire [7:0] o_Red;
   wire o_done;
 
   // Instantiate the module
-  Read_VGA uut (
+  VGA_Controller uutt(	//	Host Side 
+						.iRed(i_Red),
+						.iGreen(),
+						.iBlue(),
+						.oRequest(),
+						//	VGA Side
+						.oVGA_R(o_Red),
+						.oVGA_G(),
+						.oVGA_B(),
+						.oVGA_H_SYNC(),
+						.oVGA_V_SYNC(),
+						.oVGA_SYNC(),
+						.oVGA_BLANK(),
+						.oH_Cont(i_H_Counter),
+						.oV_Cont(i_V_Counter),
+
+						//	Control Signal
+						.iCLK(i_Clk),
+						.iRST_N(i_rst_n),
+						iZOOM_MODE_SW(0)
+							);
+
+  Read_VGA_Grey uut (
     .i_Start(i_Start),
-    .i_Red(i_Red),
+    .i_Red(o_Red),
     .i_Green(i_Green),
     .i_Blue(i_Blue),
     .i_H_Counter(i_H_Counter),
     .i_V_Counter(i_V_Counter),
     .i_Clk(i_Clk),
     .i_rst_n(i_rst_n),
-    .o_block1_avg(o_block1_avg),
-    .o_block2_avg(o_block2_avg),
-    .o_block3_avg(o_block3_avg),
-    .o_block4_avg(o_block4_avg),
-    .o_block5_avg(o_block5_avg),
-    .o_block6_avg(o_block6_avg),
-    .o_block7_avg(o_block7_avg),
-    .o_block8_avg(o_block8_avg),
-    .o_block9_avg(o_block9_avg),
-    .o_block10_avg(o_block10_avg),
-    .o_block11_avg(o_block11_avg),
-    .o_block12_avg(o_block12_avg),
-    .o_block13_avg(o_block13_avg),
-    .o_block14_avg(o_block14_avg),
-    .o_block15_avg(o_block15_avg),
-    .o_block16_avg(o_block16_avg),
+    .o_red_avg(o_red_avg),
     .o_done(o_done)
   );
 
