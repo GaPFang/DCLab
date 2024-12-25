@@ -51,7 +51,7 @@ module Solver (
     logic start_r, start_w;
     state_t state_r, state_w;
     logic o_finished_r, o_finished_w;
-    logic [3:0][3:0][3:0] o_moveNum_klotski;
+    logic [0:3][0:3][3:0] o_moveNum_klotski;
     logic [0:3][0:3] o_moveNum_mask;
     logic o_moveNum_finished;
 
@@ -117,6 +117,14 @@ module Solver (
                     start_w = 1;
                     number_w = 4;
                     target_w = 15;
+                    if (o_moveNum_klotski[0][2] == 4'd3 & o_moveNum_klotski[0][3] == 4'd4) begin
+                        mask_w[0][2] = 1;
+                        mask_w[0][3] = 1;
+                        state_w = S2_2;
+                        start_w = 1;
+                        number_w = 5;
+                        target_w = 4;
+                    end
                 end
             end
             S1_4: begin
@@ -188,6 +196,30 @@ module Solver (
                     number_w = 8;
                     target_w = 15;
                     flag_w = 1;
+                    if (o_moveNum_klotski[1][2] == 7 & o_moveNum_klotski[1][3] == 8) begin
+                        mask_w[1][2] = 1;
+                        mask_w[1][3] = 1;
+                        state_w = S3_2;
+                        start_w = 1;
+                        number_w = 13;
+                        target_w = 15;
+                        if (o_moveNum_klotski[2][0] == 9 & o_moveNum_klotski[3][0] == 13) begin
+                            mask_w[2][0] = 1;
+                            mask_w[3][0] = 1;
+                            state_w = S4_2;
+                            start_w = 1;
+                            number_w = 14;
+                            target_w = 15;
+                            if (o_moveNum_klotski[2][1] == 10 & o_moveNum_klotski[3][1] == 14) begin
+                                mask_w[2][1] = 1;
+                                mask_w[3][1] = 1;
+                                state_w = S_FINISH;
+                                start_w = 1;
+                                number_w = 11;
+                                target_w = 10;
+                            end
+                        end
+                    end
                 end
             end
             S2_4: begin
@@ -239,6 +271,23 @@ module Solver (
                     number_w = 13;
                     target_w = 15;
                     flag_w = 1;
+                    if (o_moveNum_klotski[2][0] == 9 & o_moveNum_klotski[3][0] == 13) begin
+                        mask_w[2][0] = 1;
+                        mask_w[3][0] = 1;
+                        state_w = S4_2;
+                        start_w = 1;
+                        number_w = 14;
+                        target_w = 15;
+                        flag_w = 1;
+                        if (o_moveNum_klotski[2][1] == 10 & o_moveNum_klotski[3][1] == 14) begin
+                            mask_w[2][1] = 1;
+                            mask_w[3][1] = 1;
+                            state_w = S_FINISH;
+                            start_w = 1;
+                            number_w = 11;
+                            target_w = 10;
+                        end
+                    end
                 end
             end
             S3_2: begin
@@ -290,6 +339,14 @@ module Solver (
                     number_w = 14;
                     target_w = 15;
                     flag_w = 1;
+                    if (o_moveNum_klotski[2][1] == 10 & o_moveNum_klotski[3][1] == 14) begin
+                        mask_w[2][1] = 1;
+                        mask_w[3][1] = 1;
+                        state_w = S_FINISH;
+                        start_w = 1;
+                        number_w = 11;
+                        target_w = 10;
+                    end
                 end
             end
             S4_2: begin
