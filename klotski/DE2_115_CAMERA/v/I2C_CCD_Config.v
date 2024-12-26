@@ -98,8 +98,8 @@ wire [23:0] sensor_column_size;
 wire [23:0] sensor_row_mode;
 wire [23:0] sensor_column_mode;
 
-assign sensor_start_row 		= iZOOM_MODE_SW ?  24'h010036 : 24'h010000;
-assign sensor_start_column 		= iZOOM_MODE_SW ?  24'h020010 : 24'h020000;
+assign sensor_start_row 		= iZOOM_MODE_SW ?  24'h010036 : 24'h010180;
+assign sensor_start_column 		= iZOOM_MODE_SW ?  24'h020010 : 24'h020194;
 `ifdef VGA_640x480p60
 assign sensor_row_size	 		= iZOOM_MODE_SW ?  24'h0303BF : 24'h03077F;
 assign sensor_column_size 		= iZOOM_MODE_SW ?  24'h0404FF : 24'h0409FF;

@@ -51,6 +51,7 @@ module MoveZero (
     logic check_down;
     logic check_left;
     logic check_right;
+    logic garbage;
 
     function checkMove;
         input dir_t dir;
@@ -110,6 +111,7 @@ module MoveZero (
             if (zero_pos_r[0] == num_pos_r[0] | zero_pos_r[1] == num_pos_r[1]) begin
                 check_last_pos_w = 1;
             end
+            move = 0;
         end
     endfunction
 
@@ -265,7 +267,7 @@ module MoveZero (
             end
             S_MOVE: begin
                 state_w = S_CHECK_FINISH;
-                move();
+                garbage = move();
             end
             S_FINISH: begin
                 o_finished_w = 1;
@@ -285,7 +287,7 @@ module MoveZero (
             zero_pos_r <= 0;
             last_pos_r <= 0;
             check_last_pos_r <= 0;
-            dir_r <= 0;
+            dir_r <= UP;
             num_pos_r <= 0;
             o_en_r <= 0;
         end else begin

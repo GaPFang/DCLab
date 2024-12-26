@@ -55,10 +55,7 @@ always_comb begin
         end
 
         S_ROTATE_HIGH: begin
-            if (total_steps_r == 0) begin
-                state_w =S_DONE;
-            end
-            else if (cnt_r >= HIGH_CYCLE) begin
+            if (cnt_r >= HIGH_CYCLE) begin
                 state_w = S_ROTATE_LOW;
             end
         end
