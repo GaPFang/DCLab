@@ -53,17 +53,23 @@ module RGBSort (
     end
   endgenerate
 
+
   always_comb begin
     state_nxt = state;
     counter_nxt = counter;
     counter_big_nxt = counter_big;
+    i = 0;
+    j = 0;
+    k = 0;
+    p = 0;
+    q = 0;
     for (i = 0; i < 3; i += 1) begin
         for(j = 0; j < 8 ; j += 1) begin
             tocomp_data1[i][j] = 0;
             tocomp_data2[i][j] = 0;
             tocomp_pos1[i][j] = 0;
             tocomp_pos2[i][j] = 0;
-
+            
         end
     end
     for(i=0; i<3; i=i+1) begin
@@ -72,6 +78,15 @@ module RGBSort (
         order_w[i][j] = order_r[i][j];
       end
     end
+    /*
+    for (i = 0; i < 3; i += 1) begin
+        for (j = 0; j < 3; j += 1) begin
+              for  (k = 0 ; j < 3; j += 1){
+                LUT[i][j][k]
+              }
+        end
+    end
+    */
     case(state)
       S_IDLE: begin
         if(i_start) begin
@@ -279,6 +294,7 @@ module RGBSort (
       end
     end
   end
+
 endmodule
   
 module compare2 (

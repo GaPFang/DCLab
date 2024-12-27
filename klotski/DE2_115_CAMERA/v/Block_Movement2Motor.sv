@@ -13,17 +13,17 @@ module Block_Movement2Motor(
 );
 
 //parameters
-localparam X_OFFSET = 800;
-localparam Y_OFFSET = 800;
+localparam X_OFFSET = 1600;
+localparam Y_OFFSET = 1728;
 
-localparam X_ORIGINAL_STEPS_PER_BLOCK = 625;
-localparam Y_ORIGINAL_STEPS_PER_BLOCK = 625;
+localparam X_ORIGINAL_STEPS_PER_BLOCK = 672;
+localparam Y_ORIGINAL_STEPS_PER_BLOCK = 678;
 
-localparam X_EXCESS_STEPS = 100;
-localparam Y_EXCESS_STEPS = 100;
+localparam X_EXCESS_STEPS = 150;
+localparam Y_EXCESS_STEPS = 150;
 
-localparam CALIBRATE_X_EXCESS = 60;
-localparam CALIBRATE_Y_EXCESS = 60;
+localparam CALIBRATE_X_EXCESS = 80;
+localparam CALIBRATE_Y_EXCESS = 80;
 
 /*
 localparam BLOCK0_XPOS = X_OFFSET;
@@ -80,6 +80,7 @@ localparam BLOCK15_YPOS = BLOCK3_YPOS;
 
 localparam CALIBRATE_THESHOLD = 4;
 localparam CALIBRATE_HALT = 40000000;
+localparam MOVE_HALT = 40000000;
 //
 
 //int
@@ -142,7 +143,8 @@ logic motor_x_done, motor_y_done;
 logic magnet_r, magnet_w;
 logic to_camera_done_r, to_camera_done_w;
 
-logic [31:0] halt_cnt_r, halt_cnt_w;
+logic [31:0] halt_calibrate_cnt_r, halt_calibrate_cnt_w;
+logic [31:0] halt_move_cnt_r, halt_move_cnt_w;
 //
 
 //assignment
@@ -163,8 +165,9 @@ typedef enum logic [3:0] {
     S_MOVE_BLOCK = 4'b0011,
     S_RETURN_TO_END_BLOCK = 4'b0100,
     S_CALIBRATE = 4'b0101,
-    S_HALT = 4'b0110,
-    S_DONE = 4'b111
+    S_HALT_CALIBRATE = 4'b0110,
+    S_HALT_MOVE = 4'b0111,
+    S_DONE = 4'b1000
 } state_t;
 
 state_t state_r, state_w;
@@ -199,11 +202,8 @@ always_comb begin
         end
 
         S_MOVE_BLOCK: begin
-            if ((finish_move_block_r) && (calibrate_cnt_r >= CALIBRATE_THESHOLD)) begin
-                state_w = S_CALIBRATE;
-            end
-            else if ((finish_move_block_r) && (calibrate_cnt_r < CALIBRATE_THESHOLD))begin
-                state_w = S_RETURN_TO_END_BLOCK;
+            if (finish_move_block_r)  begin
+                state_w = S_HALT_MOVE;
             end
             else begin
                 state_w = S_MOVE_BLOCK;
@@ -221,19 +221,31 @@ always_comb begin
 
         S_CALIBRATE: begin
             if (finish_calibrate_r) begin
-                state_w = S_HALT;
+                state_w = S_HALT_CALIBRATE;
             end
             else begin
                 state_w = S_CALIBRATE;
             end
         end
 
-        S_HALT: begin
-            if (halt_cnt_r >= CALIBRATE_HALT) begin
+        S_HALT_CALIBRATE: begin
+            if (halt_calibrate_cnt_r >= CALIBRATE_HALT) begin
                 state_w = S_DONE;
             end
             else begin
-                state_w = S_HALT;
+                state_w = S_HALT_CALIBRATE;
+            end
+        end
+
+        S_HALT_MOVE: begin
+            if ((halt_move_cnt_r >= MOVE_HALT) && (calibrate_cnt_r >= CALIBRATE_THESHOLD)) begin
+                state_w = S_CALIBRATE;
+            end
+            else if ((halt_move_cnt_r >= MOVE_HALT) && (calibrate_cnt_r < CALIBRATE_THESHOLD))begin
+                state_w = S_RETURN_TO_END_BLOCK;
+            end
+            else begin
+                state_w = S_HALT_MOVE;
             end
         end
 
@@ -288,7 +300,8 @@ always_comb begin
     start_block_y_pos = 0;
     end_block_x_pos = 0;
     end_block_y_pos = 0;
-    halt_cnt_w = halt_cnt_r;
+    halt_calibrate_cnt_w = halt_calibrate_cnt_r;
+    halt_move_cnt_w = halt_move_cnt_r;
     //
     case(state_r)
     S_IDLE: begin
@@ -297,9 +310,9 @@ always_comb begin
         finish_move_to_start_y_w = 0;
         move_to_start_x_cnt_w = 0;
         move_to_start_y_cnt_w = 0;
-        finish_move_block_w = 0;
-        finish_move_block_x_w = 0;
-        finish_move_block_y_w = 0;
+        finish_move_block_w = finish_move_block_r;
+        finish_move_block_x_w = finish_calibrate_x_r;
+        finish_move_block_y_w = finish_calibrate_y_r;
         finish_return_to_end_block_w = 0;
         finish_return_to_end_block_x_w = 0;
         finish_return_to_end_block_y_w = 0;
@@ -314,7 +327,8 @@ always_comb begin
         calibrate_move_y_cnt_w = 0;
         return_to_end_block_x_cnt_w = 0;
         return_to_end_block_y_cnt_w = 0;
-        halt_cnt_w = 0;
+        halt_calibrate_cnt_w = 0;
+        halt_move_cnt_w = 0;
     end
 
     S_CALC_XY_MOVEMENT: begin
@@ -571,8 +585,12 @@ always_comb begin
         end
     end
 
-    S_HALT: begin
-        halt_cnt_w = halt_cnt_r + 1;
+    S_HALT_CALIBRATE: begin
+        halt_calibrate_cnt_w = halt_calibrate_cnt_r + 1;
+    end
+
+    S_HALT_MOVE: begin
+        halt_move_cnt_w = halt_move_cnt_r + 1;
     end
 
     S_DONE: begin
@@ -660,7 +678,8 @@ always_ff @( posedge i_Clk or negedge i_rst_n ) begin
         current_y_pos_r <= 0;
         magnet_r <= 0;
         to_camera_done_r <= 0;
-        halt_cnt_r <= 0;
+        halt_calibrate_cnt_r <= 0;
+        halt_move_cnt_r <= 0;
     end
     else begin
         state_r <= state_w;
@@ -704,7 +723,8 @@ always_ff @( posedge i_Clk or negedge i_rst_n ) begin
         current_y_pos_r <= current_y_pos_w;
         magnet_r <= magnet_w;
         to_camera_done_r <= to_camera_done_w; 
-        halt_cnt_r <= halt_cnt_w;
+        halt_calibrate_cnt_r <= halt_calibrate_cnt_w;
+        halt_move_cnt_r <= halt_move_cnt_w;
     end
 end
 //

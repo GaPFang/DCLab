@@ -8,6 +8,7 @@ module Solver (
     output logic [3:0] o_start_block,
     output logic [3:0] o_end_block,
     output logic o_en,
+    output logic [3:0] o_number,
     output o_finished
 );
 
@@ -71,6 +72,7 @@ module Solver (
         .o_start_block(o_start_block),
         .o_end_block(o_end_block),
         .o_en(o_en),
+        .o_number(o_number),
         .o_klotski(o_moveNum_klotski),
         .o_mask(o_moveNum_mask),
         .o_finished(o_moveNum_finished)

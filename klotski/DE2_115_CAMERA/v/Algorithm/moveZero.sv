@@ -13,6 +13,7 @@ module MoveZero (
     output [3:0] o_end_block,
     output o_en,
     output [3:0][3:0][3:0] o_klotski,
+    output logic [3:0] o_number,
     output o_finished
 );
 
@@ -39,7 +40,7 @@ module MoveZero (
     logic [0:3][0:3] mask_r, mask_w;
     logic [0:1][1:0] target_r, target_w;
     logic [0:1][1:0] num_pos_r, num_pos_w;
-    logic [3:0] start_block;
+    logic [0:1][1:0] start_block;
     state_t state_r, state_w;
     logic o_finished_r, o_finished_w;
     logic [0:1][1:0] zero_pos_r, zero_pos_w;
@@ -151,6 +152,7 @@ module MoveZero (
         check_left = checkMove(LEFT);
         check_right = checkMove(RIGHT);
         start_block = nextBlock();
+        o_number = klotski_r[start_block[0]][start_block[1]];
         check_last_pos_w = check_last_pos_r;
         target_w = target_r;
         last_pos_w = last_pos_r;

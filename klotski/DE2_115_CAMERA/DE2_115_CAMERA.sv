@@ -513,7 +513,7 @@ assign	MOTOR_STEPX = step_control_x;
 assign	MOTOR_DIRX = direction_x;
 assign	MOTOR_STEPY = step_control_y;
 assign	MOTOR_DIRY = direction_y;
-assign	MAGNET = magnet;
+assign	MAGNET = ~magnet;
 
 //D5M read 
 always@(posedge D5M_PIXLCLK)
@@ -524,7 +524,7 @@ begin
 end
 
 //auto start when power on
-assign auto_start = ((KEY[0])&&(DLY_RST_3)&&(!DLY_RST_4))? 1'b1:1'b0;
+assign auto_start = (bm_en|((KEY[0])&&(DLY_RST_3)&&(!DLY_RST_4)))? 1'b1:1'b0;
 //Reset module
 Reset_Delay			u2	(	.iCLK(CLOCK2_50),
 							.iRST(KEY[0]),
@@ -543,8 +543,8 @@ CCD_Capture			u3	(	.oDATA(mCCD_DATA),
 							.iDATA(rCCD_DATA),
 							.iFVAL(rCCD_FVAL),
 							.iLVAL(rCCD_LVAL),
-							.iSTART(!KEY[3]|auto_start),
-							.iEND(!KEY[2]),
+							.iSTART(auto_start),
+							.iEND(key2down|bm_done),
 							.iCLK(~D5M_PIXLCLK),
 							.iRST(DLY_RST_2)
 						);
@@ -581,7 +581,9 @@ SEG7_LUT_8 			u5	(	.oSEG0(HEX0),.oSEG1(HEX1),
 							.oSEG2(HEX2),.oSEG3(HEX3),
 							.oSEG4(HEX4),.oSEG5(HEX5),
 							.oSEG6(HEX6),.oSEG7(HEX7),
-							.iDIG(block_results[~SW[1]*32+:32])//.iDIG(Frame_Cont[31:0])
+							// .iDIG(block_results[~SW[1]*32+:32]),//.iDIG(Frame_Cont[31:0])							
+							// .iDIG(o_state)
+							.iDIG({tmp, end_block_number})
 						);
 
 sdram_pll 			u6	(
@@ -698,6 +700,9 @@ VGA_Controller		u1	(	//	Host Side
 							//	Control Signal
 							.iCLK(VGA_CTRL_CLK),
 							.iRST_N(DLY_RST_2),
+							.iFromBlock(start_block),
+							.iToBlock(end_block),
+							.i_bm_en(bm_en),
 							.iZOOM_MODE_SW(SW[16])
 						);
 
@@ -739,7 +744,7 @@ Debounce deb2(
 // );
 
 Read_VGA_Grey 		read_vga (
-							.i_Start(key2down),
+							.i_Start(read_vga_start),
     						.i_Red(VGA_R),
     						.i_Green(VGA_G),
     						.i_Blue(VGA_B),
@@ -752,19 +757,32 @@ Read_VGA_Grey 		read_vga (
     						.o_done(read_VGA_done)
 );
 
-logic start_algo, algo_done;
+logic read_vga_start;
+logic start_algo, algo_done, algo_continue;
 logic [3:0][3:0][3:0] klotski;
-logic bm_en, bm_done;
+logic move_en, bm_en, bm_done;
 logic [3:0] start_block, end_block;
+logic [3:0] end_block_number, tmp;
+logic [2:0] o_state;
 
 Top_Control top_control(
     .i_Clk(VGA_CTRL_CLK),
     .i_rst_n(DLY_RST_2),
-    .i_en(read_VGA_done),
+    .i_start(key2down),
+	.i_read_VGA_done(read_VGA_done),
+	.i_move_en(move_en),
     .i_alg_done(algo_done),
+    .i_end_block(end_block),
+	.i_end_block_number(end_block_number),
+	.i_bm_done(bm_done),
 	.i_klotski(block_results),
     .o_klotski(klotski),
+	.o_read_vga_start(read_vga_start),
     .o_start_alg(start_algo),
+	.o_algo_continue(algo_continue),
+	.o_bm_en(bm_en),
+	.o_state(o_state),
+	.o_tmp(tmp),
     .o_done()
 );
 
@@ -772,11 +790,12 @@ Solver solver (
     .i_clk(VGA_CTRL_CLK),
     .i_rst_n(DLY_RST_2),
     .i_start(start_algo),
-    .i_continue(bm_done),
+    .i_continue(algo_continue),
     .i_klotski(klotski),
     .o_start_block(start_block),
     .o_end_block(end_block),
-    .o_en(bm_en),
+    .o_en(move_en),
+	.o_number(end_block_number),
     .o_finished(algo_done)
 );
 

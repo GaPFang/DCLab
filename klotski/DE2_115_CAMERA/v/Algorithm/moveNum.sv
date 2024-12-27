@@ -12,6 +12,7 @@ module MoveNum (
     output logic [3:0] o_start_block,
     output logic [3:0] o_end_block,
     output logic o_en,
+    output logic [3:0] o_number,
     output [3:0][3:0][3:0] o_klotski,
     output [3:0][3:0] o_mask,
     output o_finished
@@ -71,6 +72,7 @@ module MoveNum (
         .o_start_block(o_start_block),
         .o_end_block(o_end_block),
         .o_en(o_en),
+        .o_number(o_number),
         .o_klotski(o_moveZero_klotski),
         .o_finished(o_moveZero_finished)
     );

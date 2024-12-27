@@ -158,10 +158,10 @@ localparam START_V_POS = 10;
 // localparam V_inter_block_width = 145;
 
 localparam H_intra_block_width = 5;
-localparam H_inter_block_width = 70;
+localparam H_inter_block_width = 60;
 
 localparam V_intra_block_width = 5;
-localparam V_inter_block_width = 72;
+localparam V_inter_block_width = 60;
 
 localparam LEFT_ORIGIN = 35 + START_H_POS;
 localparam UP_ORIGIN = 36 + START_V_POS;

@@ -48,8 +48,8 @@ parameter	V_SYNC_FRONT=	1;
 parameter	V_SYNC_TOTAL=	628;
 
 //	Start Offset
-parameter	X_START		=	35;
-parameter	Y_START		=	36;
+parameter	X_START		=	36;
+parameter	Y_START		=	37;
 
 localparam START_H_POS = 120;
 localparam START_V_POS = 10;
@@ -61,10 +61,10 @@ localparam START_V_POS = 10;
 // localparam V_inter_block_width = 145;
 
 localparam H_intra_block_width = 5;
-localparam H_inter_block_width = 70;
+localparam H_inter_block_width = 68;
 
 localparam V_intra_block_width = 5;
-localparam V_inter_block_width = 68;
+localparam V_inter_block_width = 67;
 
 localparam LEFT_ORIGIN = X_START + START_H_POS;
 localparam UP_ORIGIN = Y_START + START_V_POS;
@@ -270,7 +270,7 @@ always_ff @(posedge i_Clk or negedge i_rst_n) begin
         // end
         block_Red_value_r <= block_Red_value_w;
         o_done_r <= o_done_w;
-        Red_r <= i_Red[7:6];
+        Red_r <= i_Green[7:6];
         Green_r <= i_Green;
         Blue_r <= i_Blue;
         H_Counter_r <= i_H_Counter;
