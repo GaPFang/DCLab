@@ -17,3 +17,8 @@ click the following image or go to this link: [https://youtu.be/kHKEF5sZ1Uo](htt
 
 ### Hardware Setup
 <img width="2879" height="1659" alt="image" src="https://github.com/user-attachments/assets/b8670727-08a9-47a4-8278-697f36487bb5" />
+
+### Custom Klotski board and cubes
+<img width="1880" height="872" alt="full-hardwarae" src="https://github.com/user-attachments/assets/a2ae4a61-e7b3-481c-8f1a-e4fd6078e71c" />
+
+
